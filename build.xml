@@ -5,7 +5,7 @@
   <!-- Properties -->
   
   <property environment="env"/>
-  <property name="jboost.version" value="2.0r8.4"/>
+  <property name="jboost.version" value="2.1"/>
   <property name="dir.src" value="src"/>
   <property name="dir.lib" value="lib"/>
   <property name="dir.build" value="build"/>
