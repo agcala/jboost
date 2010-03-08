@@ -74,22 +74,22 @@ public class LogLossBoost extends AdaBoost {
    * @param exampleIndex
    *            the indexes of each example to update
    */
-  public void update(Prediction[] predictions, int[][] exampleIndex) {
-    // exchange pointers of new and old m_weights
-    for (int i = 0; i < m_weights.length; i++) {
-      m_oldWeights[i] = m_weights[i];
-    }
-
-    // update m_weights and m_margins
-    for (int i = 0; i < exampleIndex.length; i++) {
-      double p = predictions[i].getClassScores()[1];
-      double[] value = new double[] { -p, p };
-      int[] indexes = exampleIndex[i];
-      for (int j = 0; j < indexes.length; j++) {
-        int example = indexes[j];
-        m_margins[example] += value[m_labels[example]];
-        m_weights[example] = calculateWeight(m_margins[example]);
-      }
-    }
-  }
+//  public void update(Prediction[] predictions, int[][] exampleIndex) {
+//    // exchange pointers of new and old m_weights
+//    for (int i = 0; i < m_weights.length; i++) {
+//      m_oldWeights[i] = m_weights[i];
+//    }
+//
+//    // update m_weights and m_margins
+//    for (int i = 0; i < exampleIndex.length; i++) {
+//      double p = predictions[i].getClassScores()[1];
+//      double[] value = new double[] { -p, p };
+//      int[] indexes = exampleIndex[i];
+//      for (int j = 0; j < indexes.length; j++) {
+//        int example = indexes[j];
+//        m_margins[example] += value[m_labels[example]];
+//        m_weights[example] = calculateWeight(m_margins[example]);
+//      }
+//    }
+//  }
 }

@@ -234,12 +234,12 @@ public class InstrumentedAlternatingTree extends ComplexLearner {
       // ");
 
       PredictorNodeSB pSB = (PredictorNodeSB) i.next();
-
+      
       if (m_treeType == AtreeType.ADD_ROOT && pSB.pNode != 0) {
-        while (sbCount.getCount() != 0) {
+        while (sbCount.getCount() > 0) {
           sbCount.countDown();
         }
-        break;
+        continue;
       }
 
       if (m_treeType == AtreeType.ADD_SINGLES) {
