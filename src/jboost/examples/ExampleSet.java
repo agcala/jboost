@@ -5,8 +5,9 @@ package jboost.examples;
 import java.util.ArrayList;
 
 import jboost.Predictor;
-import jboost.booster.Prediction;
-import jboost.learner.IncompAttException;
+import jboost.booster.prediction.Prediction;
+import jboost.examples.attributes.Label;
+import jboost.exceptions.IncompAttException;
 import jboost.monitor.Monitor;
 
 /**
@@ -27,7 +28,7 @@ public class ExampleSet {
   /**
    * A temporary storage for the examples
    */
-  private ArrayList exampleList;
+  private ArrayList<Example> exampleList;
   private int nextExample; // an internal counter for checking that the
   // indexes are coming in order
   /**
@@ -35,7 +36,6 @@ public class ExampleSet {
    */
   private ExampleDescription exampleDescription;
   private int noOfLabels = 2; // no. of possible m_labels
-  private boolean multiLabel = false; // true if multiple m_labels allowed
   private boolean isBinary = true; // identifies the data as binary-labeled
 
   /** last iteration on which calc* was called */
@@ -46,7 +46,7 @@ public class ExampleSet {
   public ExampleSet() {
     exampleSet = null;
     exampleDescription = null;
-    exampleList = new ArrayList();
+    exampleList = new ArrayList<Example>();
     nextExample = 0;
   }
 
@@ -54,14 +54,8 @@ public class ExampleSet {
   public ExampleSet(ExampleDescription exampleDescription) {
     this();
     this.exampleDescription = exampleDescription;
-    try {
-      noOfLabels = exampleDescription.getLabelDescription().getNoOfValues();
-      multiLabel = exampleDescription.getLabelDescription().isMultiLabel();
-    }
-    catch (IncompAttException e) {
-      throw new RuntimeException("While initializing ExampleSet," + "LabelDescription does not support getNoOfValues\n");
-    }
-    isBinary = (noOfLabels == 2 && !multiLabel);
+ 
+    isBinary = true;
 
   }
 
@@ -135,8 +129,8 @@ public class ExampleSet {
       }
     }
     catch (Exception e) {
-      if (Monitor.logLevel > 3) Monitor.log("in ExampleSet.calcError():" + " got exception on example no " + i);
-      if (Monitor.logLevel > 3) Monitor.log(e.getMessage());
+      Monitor.log("in ExampleSet.calcError():" + " got exception on example no " + i,Monitor.LOG_LEVEL_THREE);
+      Monitor.log(e.getMessage(),Monitor.LOG_LEVEL_THREE);
       e.printStackTrace();
     }
 
@@ -147,12 +141,12 @@ public class ExampleSet {
    * calculate m_margins of a Predictor on this ExampleSet see parameter
    * description at calcError
    */
-  public ArrayList calcMargins(int curIter, Predictor combined, Predictor base) {
+  public ArrayList<double[]> calcMargins(int curIter, Predictor combined, Predictor base) {
     updatePredictions(curIter, combined, base);
     int size = exampleSet.length;
     if (size == 0) return null;
 
-    ArrayList margins = new ArrayList();
+    ArrayList<double[]> margins = new ArrayList<double[]>();
 
     int i = 0;
     try {
@@ -163,8 +157,8 @@ public class ExampleSet {
       }
     }
     catch (Exception e) {
-      if (Monitor.logLevel > 3) Monitor.log("in ExampleSet.calcMargins():" + " got exception on example no " + i);
-      if (Monitor.logLevel > 3) Monitor.log(e.getMessage());
+      Monitor.log("in ExampleSet.calcMargins():" + " got exception on example no " + i,Monitor.LOG_LEVEL_THREE);
+      Monitor.log(e.getMessage(),Monitor.LOG_LEVEL_THREE);
       e.printStackTrace();
     }
 
@@ -175,12 +169,12 @@ public class ExampleSet {
    * calculate scores of a Predictor on this ExampleSet see parameter
    * description at calcError
    */
-  public ArrayList calcScores(int curIter, Predictor combined, Predictor base) {
+  public ArrayList<double[]> calcScores(int curIter, Predictor combined, Predictor base) {
     updatePredictions(curIter, combined, base);
     int size = exampleSet.length;
     if (size == 0) return null;
 
-    ArrayList scores = new ArrayList();
+    ArrayList<double[]> scores = new ArrayList<double[]>();
 
     int i = 0;
     double[] tmp = null;
@@ -197,8 +191,8 @@ public class ExampleSet {
       }
     }
     catch (Exception e) {
-      if (Monitor.logLevel > 3) Monitor.log("in ExampleSet.calcScores():" + " got exception on example no " + i);
-      if (Monitor.logLevel > 3) Monitor.log(e.getMessage());
+      Monitor.log("in ExampleSet.calcScores():" + " got exception on example no " + i,Monitor.LOG_LEVEL_THREE);
+      Monitor.log(e.getMessage(),Monitor.LOG_LEVEL_THREE);
       e.printStackTrace();
     }
 
@@ -229,33 +223,28 @@ public class ExampleSet {
   }
 
   /** get the binary-m_labels equivalent of the m_labels in this ExampleSet */
-  public ArrayList getBinaryLabels() {
+  public ArrayList<Boolean[]> getBinaryLabels() {
     int size = exampleSet.length;
     if (size == 0) return null;
 
-    ArrayList labels = new ArrayList();
+    ArrayList<Boolean[]> labels = new ArrayList<Boolean[]>();
 
     int i = 0;
     Boolean[] tmp = null;
     try {
       for (i = 0; i < size; i++) {
         Label l = exampleSet[i].getLabel();
-        if (isBinary) {
-          tmp = new Boolean[1];
-          tmp[0] = new Boolean(l.getMultiValue(0));
-        }
-        else {
-          tmp = new Boolean[noOfLabels];
-          for (int j = 0; j < noOfLabels; j++) {
-            tmp[j] = new Boolean(l.getMultiValue(j));
-          }
-        }
+
+        tmp = new Boolean[1];
+        tmp[0] = new Boolean(l.getValue() == 1);
+
+
         labels.add(tmp);
       }
     }
     catch (Exception e) {
-      if (Monitor.logLevel > 3) Monitor.log("in ExampleSet.getBinaryLabels():" + " got exception on example no " + i);
-      if (Monitor.logLevel > 3) Monitor.log(e.getMessage());
+      Monitor.log("in ExampleSet.getBinaryLabels():" + " got exception on example no " + i,Monitor.LOG_LEVEL_THREE);
+      Monitor.log(e.getMessage(),Monitor.LOG_LEVEL_THREE);
       e.printStackTrace();
     }
 

@@ -6,7 +6,7 @@ package jboost.visualization;
 /**
  * @author yoavfreund
  */
-public class DataElement implements Comparable {
+public class DataElement implements Comparable<Object> {
 
   protected double value;
   protected int label;

@@ -4,13 +4,17 @@ import java.util.Vector;
 
 import jboost.booster.Booster;
 import jboost.controller.Configuration;
-import jboost.examples.AttributeDescription;
-import jboost.examples.BooleanAttribute;
-import jboost.examples.DiscreteAttribute;
 import jboost.examples.ExampleDescription;
-import jboost.examples.IntegerAttribute;
-import jboost.examples.RealAttribute;
-import jboost.examples.SetAttribute;
+import jboost.examples.attributes.DiscreteAttribute;
+import jboost.examples.attributes.IntegerAttribute;
+import jboost.examples.attributes.RealAttribute;
+import jboost.examples.attributes.SetAttribute;
+import jboost.examples.attributes.descriptions.AttributeDescription;
+import jboost.exceptions.IncompAttException;
+import jboost.learner.splitter_builders.EqualitySplitterBuilder;
+import jboost.learner.splitter_builders.InequalitySplitterBuilder;
+import jboost.learner.splitter_builders.SetSplitterBuilder;
+import jboost.learner.splitter_builders.SplitterBuilder;
 import jboost.monitor.Monitor;
 
 /**
@@ -30,24 +34,24 @@ public class StumpSplitterBuilderFamily extends SplitterBuilderFamily {
    */
   public StumpSplitterBuilderFamily(Configuration config) {
     textAbstain = config.getBool(prefix + "textAbstain", false);
-    if (Monitor.logLevel > 3) {
-      Monitor.log("textAbstain = " + textAbstain);
-    }
+    
+    Monitor.log("textAbstain = " + textAbstain,Monitor.LOG_LEVEL_THREE);
+    
   }
 
   /**
    * Constructs a vector of single-attribute SplitterBuilders to match the given
    * ExampleDescription.
    */
-  public Vector build(ExampleDescription exDesc, int[] attr, boolean usePolicy, Configuration config, Booster booster) throws IncompAttException {
+  public Vector<SplitterBuilder> build(ExampleDescription exDesc, int[] attr, boolean usePolicy, Configuration config, Booster booster) throws IncompAttException {
     // attribute class templates
     RealAttribute realAttribute = new RealAttribute(0.0);
     DiscreteAttribute discreteAttribute = new DiscreteAttribute(0);
     SetAttribute setAttribute = new SetAttribute();
     IntegerAttribute integerAttribute = new IntegerAttribute();
-    BooleanAttribute booleanAttribute = new BooleanAttribute();
+    
 
-    Vector retval = new Vector();
+    Vector<SplitterBuilder> retval = new Vector<SplitterBuilder>();
     AttributeDescription[] attrDesc = exDesc.getAttributes();
     int noOfAtt = attr.length;
     SplitterBuilder tmpSB = null;
@@ -56,7 +60,7 @@ public class StumpSplitterBuilderFamily extends SplitterBuilderFamily {
     // necessary
     for (int i = 0; i < noOfAtt; i++) {
       if (!attrDesc[attr[i]].isIgnored()) {
-        Class attributeClass = attrDesc[attr[i]].getAttributeClass();
+        Class<?> attributeClass = attrDesc[attr[i]].getAttributeClass();
 
         if (attributeClass.equals(realAttribute.getClass())) {
           tmpSB = new InequalitySplitterBuilder(attr[i], booster, new AttributeDescription[] { attrDesc[attr[i]] });
@@ -74,9 +78,9 @@ public class StumpSplitterBuilderFamily extends SplitterBuilderFamily {
           throw new IncompAttException("Trying to build SplitterBuilders vector but cannot identify attribute:", attr[i], attributeClass);
         }
 
-        if (Monitor.logLevel > 3) {
-          Monitor.log("attribute " + attr[i] + " class is:" + attributeClass);
-        }
+       
+        Monitor.log("attribute " + attr[i] + " class is:" + attributeClass,Monitor.LOG_LEVEL_THREE);
+        
 
         retval.add(tmpSB);
       }

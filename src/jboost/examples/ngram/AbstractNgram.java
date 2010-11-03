@@ -11,10 +11,10 @@ import java.util.StringTokenizer;
  * @author Rob Schapire (rewritten by Aaron Arvey)
  */
 
-abstract class AbstractNgram implements Enumeration {
+public abstract class AbstractNgram implements Enumeration<Object> {
 
   /** The stream of ngrams */
-  Enumeration enumer;
+  Enumeration<?> enumer;
 
   /** The words in the original string */
   String[] words;

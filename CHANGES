@@ -1,6 +1,13 @@
 JBoost Release Notes
 --------------------
 
++ Release 2.2 + 
+=================
+ - Fix possible bugs with ADD_ROOT
+ - Remove support for MultiLabel and MultiClass from java
+ - Add more test cases
+ - Add BrownBoost
+
 + Release 2.0 + 
 =================
  - RobustBoost is implemented

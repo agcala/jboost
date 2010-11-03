@@ -127,7 +127,7 @@ public class LTStringTokenizer {
       rest += curTok;
     firstLineNum = holdLineNum; // restore first line of rest
     // if(Monitor.logLevel>3) Monitor.log(curLoc+" "+strLng);
-    String tmpStr = string.substring(curLoc, strLng);
+    
     // if(Monitor.logLevel>3) Monitor.log(tmpStr+tmpStr.length());
     return rest + string.substring(curLoc, strLng);
   }
@@ -204,11 +204,11 @@ public class LTStringTokenizer {
       coreMain(args);
     }
     catch (IOException e) {
-      if (Monitor.logLevel > 3) Monitor.log("IO exception: " + e.getMessage());
+      Monitor.log("IO exception: " + e.getMessage(),Monitor.LOG_LEVEL_THREE);
       e.printStackTrace();
     }
     catch (RuntimeException e) {
-      if (Monitor.logLevel > 3) Monitor.log("Runtime exception: " + e.getMessage());
+      Monitor.log("Runtime exception: " + e.getMessage(),Monitor.LOG_LEVEL_THREE);
       e.printStackTrace();
     }
   }
@@ -218,7 +218,7 @@ public class LTStringTokenizer {
     String string;
     String terminator;
 
-    if (Monitor.logLevel > 3) Monitor.log("Testing LTStringTokenizer.");
+    Monitor.log("Testing LTStringTokenizer.",Monitor.LOG_LEVEL_THREE);
     switch (args.length) {
       case 0:
         string = new String("Hello brave new world\nHow's life?");
@@ -250,14 +250,14 @@ public class LTStringTokenizer {
       default:
         throw new RuntimeException("Usage: LTStringTokenizer" + " [-i|filnename]");
     }
-    if (Monitor.logLevel > 3) Monitor.log("String is: <" + string + ">");
-    if (Monitor.logLevel > 3) Monitor.log("Token terminator is: <" + terminator + ">");
+    Monitor.log("String is: <" + string + ">",Monitor.LOG_LEVEL_THREE);
+    Monitor.log("Token terminator is: <" + terminator + ">",Monitor.LOG_LEVEL_THREE);
     LTStringTokenizer sst = new LTStringTokenizer(string, terminator);
-    if (Monitor.logLevel > 3) Monitor.log("Tokens:");
+    Monitor.log("Tokens:",Monitor.LOG_LEVEL_THREE);
     String newToken;
     while ((newToken = sst.next()) != null)
-      if (Monitor.logLevel > 3) Monitor.log("<" + newToken + ">" + " lines " + sst.firstLineNum() + " to " + sst.lastLineNum());
-    if (Monitor.logLevel > 3) Monitor.log(" Rest: <" + sst.rest() + ">" + " lines " + sst.firstLineNum() + " to " + sst.lastLineNum());
+      Monitor.log("<" + newToken + ">" + " lines " + sst.firstLineNum() + " to " + sst.lastLineNum(),Monitor.LOG_LEVEL_THREE);
+    Monitor.log(" Rest: <" + sst.rest() + ">" + " lines " + sst.firstLineNum() + " to " + sst.lastLineNum(),Monitor.LOG_LEVEL_THREE);
   }
 
   public String toString() {

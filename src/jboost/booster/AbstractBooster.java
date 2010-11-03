@@ -2,7 +2,7 @@ package jboost.booster;
 
 import java.io.Serializable;
 
-import jboost.NotSupportedException;
+import jboost.booster.bag.Bag;
 import jboost.controller.Configuration;
 
 /**
@@ -31,11 +31,9 @@ public abstract class AbstractBooster implements Booster, Serializable {
    *            set of options for the booster
    * @param num_labels
    *            the number of m_labels in the data
-   * @param isMultiLabel
-   *            true if multilabled data
    * @return Booster
    */
-  public static Booster getInstance(Configuration c, int num_labels, boolean isMultiLabel) throws ClassNotFoundException, InstantiationException,
+  public static Booster getInstance(Configuration c, int num_labels) throws ClassNotFoundException, InstantiationException,
                                                                                           IllegalAccessException, Exception {
 
     AbstractBooster result = null;
@@ -44,13 +42,11 @@ public abstract class AbstractBooster implements Booster, Serializable {
     // create a class of that type.
     String boosterType = c.getString(PREFIX + "type", "jboost.booster.AdaBoost");
     System.out.println("Booster type: " + boosterType);
-    Class boosterClass = Class.forName(boosterType);
+    Class<?> boosterClass = Class.forName(boosterType);
     result = (AbstractBooster) boosterClass.newInstance();
     result.init(c);
 
-    if (isMultiLabel) {
-      throw new NotSupportedException("JBoost does not support multi-lable and multi-class");
-    }
+   
 
     // If we are debugging, then wrap in paranoia
     boolean paranoid = c.getBool(PREFIX + "paranoid", false);
@@ -156,4 +152,5 @@ public abstract class AbstractBooster implements Booster, Serializable {
     return loss;
   }
 
+  
 }

@@ -3,6 +3,7 @@ package jboost.tokenizer;
 import java.io.IOException;
 
 import jboost.examples.ExampleDescription;
+import jboost.exceptions.ParseException;
 
 /**
  * This abstract class defines the ability to read a given format of data. For

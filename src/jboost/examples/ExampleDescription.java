@@ -2,6 +2,12 @@ package jboost.examples;
 
 import java.util.Vector;
 
+import jboost.examples.attributes.Label;
+import jboost.examples.attributes.descriptions.AttributeDescription;
+import jboost.examples.attributes.descriptions.IndexDescription;
+import jboost.examples.attributes.descriptions.LabelDescription;
+import jboost.examples.attributes.descriptions.WeightDescription;
+
 /**
  * A description of the fields in a single example
  * 
@@ -22,7 +28,7 @@ public class ExampleDescription {
   private IndexDescription m_index;
 
   /** a description of each attribute */
-  private Vector m_attribute;
+  private Vector<AttributeDescription> m_attribute;
 
   /** the index of the example attribute that contains the label */
   private int m_labelIndex;
@@ -40,7 +46,7 @@ public class ExampleDescription {
    * Defaul constructor
    */
   public ExampleDescription() {
-    m_attribute = new Vector();
+    m_attribute = new Vector<AttributeDescription>();
     m_label = null;
     m_weight = null;
     m_index = null;

@@ -126,7 +126,7 @@ public class LTStreamTokenizer {
           numRead = br.read(cBuf, 0, bufLen);
         }
         catch (IOException e) {
-          if (Monitor.logLevel > 3) Monitor.log("LTStreamTokenizer.next(): " + "IO exception: " + e.getMessage());
+          Monitor.log("LTStreamTokenizer.next(): " + "IO exception: " + e.getMessage(),Monitor.LOG_LEVEL_THREE);
           e.printStackTrace();
         }
         if (numRead == -1) { // no more data
@@ -293,29 +293,28 @@ public class LTStreamTokenizer {
       mainCore(args);
     }
     catch (IOException e) {
-      if (Monitor.logLevel > 3) Monitor.log("IO exception: " + e.getMessage());
+      Monitor.log("IO exception: " + e.getMessage(),Monitor.LOG_LEVEL_THREE);
       e.printStackTrace();
     }
     catch (RuntimeException e) {
-      if (Monitor.logLevel > 3) Monitor.log("Runtime exception: " + e.getMessage());
+      Monitor.log("Runtime exception: " + e.getMessage(),Monitor.LOG_LEVEL_THREE);
       e.printStackTrace();
     }
   }
 
   public static void mainCore(String[] args) throws IOException {
-    String string;
     String terminator;
-    if (Monitor.logLevel > 3) Monitor.log("Testing LTStreamTokenizer.");
+    Monitor.log("Testing LTStreamTokenizer.",Monitor.LOG_LEVEL_THREE);
     if (args.length != 1) // wrong number of arguments
     throw new RuntimeException("Usage: LTStreamTokenizer <filnename>");
     BufferedReader br = new BufferedReader(new FileReader(args[0]));
     terminator = br.readLine();
-    if (Monitor.logLevel > 3) Monitor.log("Token terminator is: <" + terminator + ">" + " tokenizing rest of file.");
+    Monitor.log("Token terminator is: <" + terminator + ">" + " tokenizing rest of file.",Monitor.LOG_LEVEL_THREE);
     LTStreamTokenizer sst = new LTStreamTokenizer(br, terminator);
-    if (Monitor.logLevel > 3) Monitor.log("Tokens:");
+    Monitor.log("Tokens:",Monitor.LOG_LEVEL_THREE);
     String newToken;
     while ((newToken = sst.next()) != null)
-      if (Monitor.logLevel > 3) Monitor.log("<" + newToken + ">" + " lines " + sst.firstLineNum() + " to " + sst.lastLineNum());
-    if (Monitor.logLevel > 3) Monitor.log(" Rest: <" + sst.rest() + ">" + " lines " + sst.firstLineNum() + " to " + sst.lastLineNum());
+      Monitor.log("<" + newToken + ">" + " lines " + sst.firstLineNum() + " to " + sst.lastLineNum(),Monitor.LOG_LEVEL_THREE);
+    Monitor.log(" Rest: <" + sst.rest() + ">" + " lines " + sst.firstLineNum() + " to " + sst.lastLineNum(),Monitor.LOG_LEVEL_THREE);
   }
 }

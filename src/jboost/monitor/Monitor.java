@@ -12,6 +12,7 @@ import java.util.Date;
 
 import jboost.Predictor;
 import jboost.booster.Booster;
+import jboost.booster.BrownBoost;
 import jboost.booster.RobustBoost;
 import jboost.controller.Configuration;
 import jboost.examples.ExampleSet;
@@ -58,14 +59,20 @@ public class Monitor {
   private ExampleSet testSet; // the test ExampleSet
   private Booster m_booster; // used to get theoretical bound and m_margins
   /**
-   * a public variable that stores the logging level for this run. The variable
-   * should be checked before each call to log(). Calls to log should be of the
+   * a private variable that stores the logging level for this run.  Calls to log should be of the
    * form</br> <tt>
    if(Monitor.logLevel> 5) Monitor.log("log message");
    </tt>
    */
-  public static int logLevel = 0;
+  private static int logLevel = 0;
 
+  public static final int LOG_LEVEL_ALWAYS = -1; //print in any case
+  public static final int LOG_LEVEL_ZERO = 0;
+  public static final int LOG_LEVEL_ONE = 1;
+  public static final int LOG_LEVEL_THREE = 3;
+  public static final int LOG_LEVEL_FIVE = 5;
+  public static final int LOG_LEVEL_THIRTY = 30;
+  
   public static void init_log(Configuration config) throws IOException {
     String stem = config.getString("S", "data");
     logOutputFilename = config.getString("log", stem + ".log");
@@ -79,9 +86,13 @@ public class Monitor {
     startTime = new Date(); // remember time at start to report it later
   }
 
-  /** a central place to print debugging logs */
-  public static void log(Object message) {
-    logStream.println(message);
+  /** A central place to print debugging logs. 
+   *  If statementLogLevel is more than log level set by configuration then log into a stream,
+   *  otherwise, do not log.
+   * */
+  public static void log(Object message,int statementLogLevel) {
+	  if (Monitor.logLevel > statementLogLevel)
+		  logStream.println(message);
   }
 
   /** close the logging file */
@@ -120,10 +131,16 @@ public class Monitor {
 
       // RobustBoost: binary case
       if (m_booster instanceof RobustBoost) {
-        RobustBoost rb = (RobustBoost) m_booster;
-        infoStream.println("RobustBoost parameters:");
-        infoStream.println(rb.getParameters());
-        infoStream.println();
+    	  RobustBoost rb = (RobustBoost) m_booster;
+    	  infoStream.println("RobustBoost parameters:");
+    	  infoStream.println(rb.getParameters());
+    	  infoStream.println();
+      }
+      else if (m_booster instanceof BrownBoost) {
+    	  BrownBoost bb = (BrownBoost) m_booster;
+    	  infoStream.println("RobustBoost parameters:");
+    	  infoStream.println(bb.getParameters());
+    	  infoStream.println();
       }
 
       infoStream.println("FILENAMES");
@@ -152,10 +169,13 @@ public class Monitor {
 
       // RobustBoost: binary case
       if (booster instanceof RobustBoost) {
-        infoStream.println("iter \tbound \ttrain \ttest \ttime");
+    	  infoStream.println("iter \tbound \ttrain \ttest \ttime");
+      }
+      else if (booster instanceof BrownBoost) {
+    	  infoStream.println("iter \tbound \ttrain \ttest \ttime");
       }
       else {
-        infoStream.println("iter \tbound \ttrain \ttest");
+    	  infoStream.println("iter \tbound \ttrain \ttest");
       }
 
       infoStream.flush();
@@ -190,6 +210,10 @@ public class Monitor {
       double currentTime = ((RobustBoost) m_booster).getCurrentTime();
       infoStream.print(iter + "\t" + f.format(theoryBound) + "\t" + f.format(trainError) + "\t" + f.format(testError) + "\t" + f.format(currentTime));
     }
+    else if (m_booster instanceof BrownBoost) {
+    	double currentTime = ((BrownBoost) m_booster).getCurrentTime();
+    	infoStream.print(iter + "\t" + f.format(theoryBound) + "\t" + f.format(trainError) + "\t" + f.format(testError) + "\t" + f.format(currentTime));
+    }
     // otherwise
     else {
       infoStream.print(iter + "\t" + f.format(theoryBound) + "\t" + f.format(trainError) + "\t" + f.format(testError));
@@ -207,9 +231,9 @@ public class Monitor {
                            + m_booster.getParamString() + FIELD_SEPARATOR);
 
     // Get the relavant data structures (arrays and lists)
-    ArrayList tMargin = tSet.calcMargins(iter, combined, base);
-    ArrayList tScores = tSet.calcScores(iter, combined, base);
-    ArrayList tLabelIndices = tSet.getBinaryLabels();
+    ArrayList<double[]> tMargin = tSet.calcMargins(iter, combined, base);
+    ArrayList<double[]> tScores = tSet.calcScores(iter, combined, base);
+    ArrayList<Boolean[]> tLabelIndices = tSet.getBinaryLabels();
 
     double[] tIndex = null;
     if (tSet.hasIndex()) tIndex = tSet.getIndexes();
@@ -341,12 +365,22 @@ public class Monitor {
       RobustBoost rb = (RobustBoost) m_booster;
       infoStream.println("\nrb_t = " + rb.getCurrentTime());
     }
+    else if (m_booster instanceof BrownBoost) {
+    	BrownBoost bb = (BrownBoost) m_booster;
+    	infoStream.println("\nbb_t = " + bb.getCurrentTime());
+    }
 
     infoStream.close();
 
     if (trainBoostingStream != null) trainBoostingStream.close();
     if (testBoostingStream != null) testBoostingStream.close();
 
-    log("finished closing output files");
+    log("finished closing output files",LOG_LEVEL_ALWAYS);
   }
+
+  public static int getLogLevel() {
+	  return logLevel;
+  }
+
+  
 }

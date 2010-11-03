@@ -1,5 +1,8 @@
 package jboost.examples;
 
+import jboost.examples.attributes.Attribute;
+import jboost.examples.attributes.Label;
+
 /**
  * The Example class holds a single Instance of an example, along with its
  * Label.

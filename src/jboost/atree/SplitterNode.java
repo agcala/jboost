@@ -2,10 +2,10 @@ package jboost.atree;
 
 import java.io.Serializable;
 
-import jboost.booster.Prediction;
+import jboost.booster.prediction.Prediction;
 import jboost.examples.Instance;
-import jboost.learner.IncompAttException;
-import jboost.learner.Splitter;
+import jboost.exceptions.IncompAttException;
+import jboost.learner.splitters.Splitter;
 
 /**
  * SplitterNode.java This is a splitter node in the alternating tree, it
@@ -16,7 +16,7 @@ import jboost.learner.Splitter;
  * @version $Header: /cvsroot/jboost/jboost/src/jboost/atree/SplitterNode.java,v
  *          1.2 2007/10/02 02:28:06 aarvey Exp $
  */
-class SplitterNode implements Serializable {
+public class SplitterNode implements Serializable {
 
   /**
    * Calculate the prediction of the subtree starting at this node. Depends on
@@ -140,7 +140,7 @@ class SplitterNode implements Serializable {
    * predicting, the algorithm follows the node that corresponds to the output
    * of the splitter
    */
-  protected PredictorNode[] predictorNodes;
+  public PredictorNode[] predictorNodes;
 
   /**
    * Return the list of PredictorNodes that are children of this SplitterNode
@@ -180,6 +180,15 @@ class SplitterNode implements Serializable {
    */
   protected int index;
   /** The splitter rule that is associated with this node */
-  protected Splitter splitter;
+  public Splitter splitter;
 
+  public PredictorNode getParent() {
+	  return parent;
+  }
+
+  public void setPredictorNodes(PredictorNode[] predictorNodes) {
+	  this.predictorNodes = predictorNodes;
+  }
+
+  
 }

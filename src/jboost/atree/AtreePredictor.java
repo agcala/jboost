@@ -1,18 +1,18 @@
 package jboost.atree;
 
 import jboost.Predictor;
-import jboost.booster.Bag;
 import jboost.booster.Booster;
-import jboost.booster.Prediction;
+import jboost.booster.bag.Bag;
+import jboost.booster.prediction.Prediction;
 import jboost.examples.Instance;
-import jboost.learner.IncompAttException;
-import jboost.learner.Splitter;
+import jboost.exceptions.IncompAttException;
+import jboost.learner.splitters.Splitter;
 
 /**
  * The base predictor that is returned by
  * InstrumentedAlternatingTree.getLastBasePredictor().
  */
-class AtreePredictor implements Predictor {
+public class AtreePredictor implements Predictor {
 
   private Prediction pred[]; // predictions associated with this split
   private boolean isConstant; // true if rule was added at the root
@@ -21,13 +21,13 @@ class AtreePredictor implements Predictor {
   private Prediction zeroPred; // a zero prediction
 
   /** the constructor for a constant predictor */
-  AtreePredictor(Prediction[] pred) {
+  public AtreePredictor(Prediction[] pred) {
     this.pred = pred;
     isConstant = true;
   }
 
   /** the constructor for a non-constant predictor */
-  AtreePredictor(Splitter s, PredictorNode p, Prediction[] pred, Booster b) {
+  public AtreePredictor(Splitter s, PredictorNode p, Prediction[] pred, Booster b) {
     splitter = s;
 
     if (p == null) {

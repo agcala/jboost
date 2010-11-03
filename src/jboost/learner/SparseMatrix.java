@@ -16,12 +16,12 @@ import jboost.monitor.Monitor;
  *          1.1.1.1 2007/05/16 04:06:02 aarvey Exp $
  ******************************************************************************/
 
-class SparseMatrix {
+public class SparseMatrix {
 
   private int nRow, nCol, maxToken;
   private boolean finalized;
   private int[][] rows, cols;
-  private ArrayList tRows; /* array for storying rows before finalization */
+  private ArrayList<int[]> tRows; /* array for storying rows before finalization */
 
   static public void main(String[] argv) {
     try {
@@ -60,29 +60,29 @@ class SparseMatrix {
 
       /** sm.printSparseMatrix(); * */
 
-      if (Monitor.logLevel > 3) Monitor.log(sm);
+      Monitor.log(sm,Monitor.LOG_LEVEL_THREE);
 
       int[][] IE = sm.intersectWithToken(1);
 
       if (IE != null) {
-        if (Monitor.logLevel > 3) Monitor.log("Intersected matrix for token 1");
+        Monitor.log("Intersected matrix for token 1",Monitor.LOG_LEVEL_THREE);
         for (int i = 1; i < IE.length; i++)
           sm.printit("Row " + IE[0][i - 1], IE[i]);
       }
 
     }
     catch (Exception e) {
-      if (Monitor.logLevel > 3) Monitor.log(e.getMessage());
+      Monitor.log(e.getMessage(),Monitor.LOG_LEVEL_THREE);
       e.printStackTrace();
     }
     finally {
-      if (Monitor.logLevel > 3) Monitor.log("\nfinished testing sparse matrix implementation");
+      Monitor.log("\nfinished testing sparse matrix implementation",Monitor.LOG_LEVEL_THREE);
     }
   }
 
   /** create an empty matrix * */
-  SparseMatrix() {
-    tRows = new ArrayList();
+  public SparseMatrix() {
+    tRows = new ArrayList<int[]>();
     finalized = false;
     maxToken = 0;
     nRow = 0;
@@ -90,7 +90,7 @@ class SparseMatrix {
   }
 
   /** get the array of Tokens associated with a row * */
-  int[] getRow(int i) {
+  public int[] getRow(int i) {
     if (!finalized) throw new RuntimeException("getRow: Sparse matrix not finalized");
 
     if (i >= nRow || i < 0) return null;
@@ -99,7 +99,7 @@ class SparseMatrix {
   }
 
   /** get the array of ExampleIndexes associated with a column */
-  int[] getColumn(int i) {
+  public int[] getColumn(int i) {
     if (!finalized) throw new RuntimeException("Sparse matrix not finalized");
 
     if (i >= nCol || i < 0) return null;
@@ -112,7 +112,7 @@ class SparseMatrix {
    * the list contains the example indices in which the token appears. The rest
    * of rows are the list of tokens for eah example in which the token appears.
    */
-  int[][] intersectWithToken(int tok) {
+  public int[][] intersectWithToken(int tok) {
     if (!finalized) throw new RuntimeException("Sparse matrix not finalized");
 
     if (cols[tok] == null) return null;
@@ -128,7 +128,7 @@ class SparseMatrix {
   }
 
   // check whether an example ocontains a token
-  boolean appears(int index, int token) {
+  public boolean appears(int index, int token) {
 
     if (!finalized) throw new RuntimeException("Sparse matrix not finalized");
 
@@ -140,7 +140,7 @@ class SparseMatrix {
   }
 
   /** add a row of tokens corresponding to a new example * */
-  void addRow(int[] tokens) {
+  public  void addRow(int[] tokens) {
     tRows.add(tokens);
     nRow++;
 
@@ -152,7 +152,7 @@ class SparseMatrix {
   }
 
   /* if maximal number of tokens is not given use maximal token index */
-  void finalizeMatrix() {
+  public void finalizeMatrix() {
     try {
       finalizeMatrix(maxToken + 1);
     }
@@ -162,7 +162,7 @@ class SparseMatrix {
   }
 
   /** finalize the matrix - has to be called before issuing a get command * */
-  void finalizeMatrix(int maxCol) throws InsufficientSparseMatrixColumns {
+  public void finalizeMatrix(int maxCol) throws InsufficientSparseMatrixColumns {
     int[] token_count;
 
     if (maxCol < maxToken) throw new InsufficientSparseMatrixColumns("Insufficient number of colums in finalization " + maxCol + " < " + maxToken);
@@ -239,15 +239,15 @@ class SparseMatrix {
     }
   }
 
-  void printSparseMatrix() {
+  public void printSparseMatrix() {
     if (!finalized) throw new RuntimeException("Sparse matrix not finalized");
     else {
       int i, j;
 
-      if (Monitor.logLevel > 3) Monitor.log("Rows: " + nRow + " Columns: " + nCol + "\n");
+      Monitor.log("Rows: " + nRow + " Columns: " + nCol + "\n",Monitor.LOG_LEVEL_THREE);
 
-      if (Monitor.logLevel > 3) Monitor.log("Printing matrix by row:");
-      if (Monitor.logLevel > 3) Monitor.log("-----------------------\n");
+      Monitor.log("Printing matrix by row:",Monitor.LOG_LEVEL_THREE);
+      Monitor.log("-----------------------\n",Monitor.LOG_LEVEL_THREE);
 
       for (i = 0; i < nRow; i++) {
         int[] tmpr = new int[nCol];
@@ -263,8 +263,8 @@ class SparseMatrix {
         System.out.print("\n");
       }
 
-      if (Monitor.logLevel > 3) Monitor.log("Printing matrix by column:");
-      if (Monitor.logLevel > 3) Monitor.log("-------------------------\n");
+      Monitor.log("Printing matrix by column:",Monitor.LOG_LEVEL_THREE);
+      Monitor.log("-------------------------\n",Monitor.LOG_LEVEL_THREE);
 
       for (i = 0; i < nCol; i++) {
         int[] tmpr = new int[nRow];
@@ -282,15 +282,15 @@ class SparseMatrix {
     }
   }
 
-  int numRows() {
+  public int numRows() {
     return this.nRow;
   }
 
-  int numCols() {
+  public int numCols() {
     return this.nCol;
   }
 
-  void printit(String name, int[] A) {
+  public void printit(String name, int[] A) {
     System.out.print(name + " :");
     for (int i = 0; i < A.length; i++)
       System.out.print(" " + A[i]);

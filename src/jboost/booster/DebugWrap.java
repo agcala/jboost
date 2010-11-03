@@ -1,10 +1,14 @@
 package jboost.booster;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.TreeMap;
 
+import jboost.atree.PredictorNode;
+import jboost.booster.bag.Bag;
+import jboost.booster.prediction.Prediction;
 import jboost.controller.Configuration;
 
 /**
@@ -64,7 +68,7 @@ class DebugWrap extends AbstractBooster {
    * Checks: 1) Proper index order, 2) The booster has not been finalized, 3)
    * Weight is not negative
    */
-  public void addExample(int index, jboost.examples.Label label, double weight, double margin) {
+  public void addExample(int index, jboost.examples.attributes.Label label, double weight, double margin) {
     if (index != num_examples) throw new RuntimeException("AbstractBooster received examples " + "out of order");
     if (finalized) throw new RuntimeException("AbstractBooster.addExample called " + "after booster finalized");
     if (weight < 0) throw new RuntimeException("AbstractBooster.addExample called " + "with negative weight");
@@ -73,14 +77,14 @@ class DebugWrap extends AbstractBooster {
     num_examples++;
   }
 
-  public void addExample(int index, jboost.examples.Label label, double weight) {
+  public void addExample(int index, jboost.examples.attributes.Label label, double weight) {
     addExample(index, label, weight, 0);
   }
 
   /**
    * Calls addExample(index,label,weight)
    */
-  public void addExample(int index, jboost.examples.Label label) {
+  public void addExample(int index, jboost.examples.attributes.Label label) {
     addExample(index, label, 1.0);
   }
 
@@ -141,7 +145,7 @@ class DebugWrap extends AbstractBooster {
     time++;
     if (preds.length != index.length) throw new RuntimeException("booster.update received " + "arguments of different lengths");
 
-    HashSet h = new HashSet();
+    HashSet<Integer> h = new HashSet<Integer>();
     for (int i = 0; i < index.length; i++)
       for (int j = 0; j < index[i].length; j++) {
         if (h.contains(new Integer(index[i][j]))) {
@@ -165,10 +169,10 @@ class DebugWrap extends AbstractBooster {
    * Check if array of bags overlap one another
    */
   private static boolean overlappingBags(Bag[] b) {
-    HashSet h = new HashSet();
+    HashSet<Integer> h = new HashSet<Integer>();
 
     for (int j = 0; j < b.length; j++)
-      for (Iterator i = ((PBag) b[j]).map.keySet().iterator(); i.hasNext();) {
+      for (Iterator<Integer> i = ((PBag) b[j]).map.keySet().iterator(); i.hasNext();) {
         Integer x = (Integer) i.next();
         if (h.contains(x)) return true;
         h.add(x);
@@ -225,20 +229,20 @@ class DebugWrap extends AbstractBooster {
 
     private Bag bag; // underlying bag
     private int ctime_created;
-    private Map map; // contains all examples in bag mapped
+    private Map<Integer,Integer> map; // contains all examples in bag mapped
 
     // to last refreshed times
 
     private PBag() {
       bag = booster.newBag();
       ctime_created = ctime;
-      map = new TreeMap();
+      map = new TreeMap<Integer,Integer>();
     }
 
     // check if all examples in bag are up to date
     private boolean isCurrent() {
       if (ctime_created != ctime) return false;
-      for (Iterator i = map.keySet().iterator(); i.hasNext();) {
+      for (Iterator<Integer> i = map.keySet().iterator(); i.hasNext();) {
         Integer x = (Integer) i.next();
         if (((Integer) map.get(x)).intValue() < // last refresh time
         modified_time[x.intValue()]) // last modified time
@@ -249,7 +253,7 @@ class DebugWrap extends AbstractBooster {
 
     public String toString() {
       String s = "PBag.  ctime_created = " + ctime_created + " Map:\n";
-      for (Iterator i = map.keySet().iterator(); i.hasNext();) {
+      for (Iterator<Integer> i = map.keySet().iterator(); i.hasNext();) {
         Integer x = (Integer) i.next();
         s += x + " " + ((Integer) map.get(x)) + "\n";
       }
@@ -305,7 +309,7 @@ class DebugWrap extends AbstractBooster {
     public void addBag(Bag b) {
       PBag other = (PBag) b;
 
-      for (Iterator i = other.map.keySet().iterator(); i.hasNext();) {
+      for (Iterator<Integer> i = other.map.keySet().iterator(); i.hasNext();) {
         Integer x = (Integer) i.next();
         saveEx(x.intValue(), ((Integer) other.map.get(x)).intValue());
       }
@@ -319,7 +323,7 @@ class DebugWrap extends AbstractBooster {
       if (other.ctime_created != ctime_created) throw new RuntimeException("bag " + b + " does not " + "match creation time of bag " + this
                                                                            + " in bag.subtractBag");
 
-      for (Iterator i = other.map.keySet().iterator(); i.hasNext();) {
+      for (Iterator<Integer> i = other.map.keySet().iterator(); i.hasNext();) {
         Integer x = (Integer) i.next();
         if (map.containsKey(x) && ((Integer) map.get(x)).intValue() != ((Integer) other.map.get(x)).intValue()) throw new RuntimeException(
                                                                                                                                            "creation times of "
@@ -338,7 +342,7 @@ class DebugWrap extends AbstractBooster {
     public void copyBag(Bag b) {
       PBag other = (PBag) b;
       ctime_created = other.ctime_created;
-      map = new TreeMap(other.map);
+      map = new TreeMap<Integer,Integer>(other.map);
       bag.copyBag(other.bag);
     }
 
@@ -383,6 +387,13 @@ class DebugWrap extends AbstractBooster {
    */
   public void init(Configuration config) {
     // TODO Auto-generated method stub
+  }
+
+  @Override
+  public void normalizePrediction(Prediction[] predictions,
+		  ArrayList<PredictorNode> mPredictors) {
+	  //do nothing
+
   }
 
 }

@@ -4,8 +4,13 @@
  */
 package jboost.booster;
 
+import java.util.ArrayList;
+
+import jboost.atree.PredictorNode;
+import jboost.booster.bag.Bag;
+import jboost.booster.prediction.Prediction;
 import jboost.controller.Configuration;
-import jboost.examples.Label;
+import jboost.examples.attributes.Label;
 
 /**
  * This is the definition of the required interface for a booster. A skeletal
@@ -163,4 +168,5 @@ public interface Booster {
 
   public abstract void addExample(int index, Label label, double weight, double margin);
 
+  public abstract void normalizePrediction(Prediction[] predictions, ArrayList<PredictorNode> mPredictors);
 }

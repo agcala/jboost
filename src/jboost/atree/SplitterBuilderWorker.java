@@ -4,7 +4,8 @@ import java.util.Vector;
 import java.util.concurrent.CountDownLatch;
 
 import jboost.CandidateSplit;
-import jboost.NotSupportedException;
+import jboost.exceptions.NotSupportedException;
+import jboost.atree.AtreeCandidateSplit;
 import jboost.monitor.Monitor;
 import jboost.util.BaseCountWorker;
 
@@ -17,9 +18,9 @@ import jboost.util.BaseCountWorker;
 public class SplitterBuilderWorker extends BaseCountWorker {
 
   PredictorNodeSB pSB;
-  Vector splitters;
+  Vector<CandidateSplit> splitters;
 
-  public SplitterBuilderWorker(PredictorNodeSB pSB, Vector splitters, CountDownLatch count) {
+  public SplitterBuilderWorker(PredictorNodeSB pSB, Vector<CandidateSplit> splitters, CountDownLatch count) {
     super(count);
     this.pSB = pSB;
     this.splitters = splitters;
@@ -62,8 +63,6 @@ public class SplitterBuilderWorker extends BaseCountWorker {
       }
     }
     stop = System.currentTimeMillis();
-    if (Monitor.logLevel > 3) {
-      Monitor.log("It took an average of " + (stop - start) / (j * 1000.0) + " seconds to build " + j + " splitterbuilders.");
-    }
+    Monitor.log("It took an average of " + (stop - start) / (j * 1000.0) + " seconds to build " + j + " splitterbuilders.",Monitor.LOG_LEVEL_THREE);
   }
 }

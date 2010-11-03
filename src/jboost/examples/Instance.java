@@ -1,5 +1,7 @@
 package jboost.examples;
 
+import jboost.examples.attributes.Attribute;
+
 /** Holds the input features of an Example */
 public class Instance {
 

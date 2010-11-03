@@ -39,11 +39,11 @@ public class StringOp {
    * Splits a string at each seperator and returns a list of the unique tokens,
    * trimmed between the seperators.
    */
-  public static List toUniqList(String s, String seperator) {
+  public static List<String> toUniqList(String s, String seperator) {
     int numstr = 0;
     LTStringTokenizer lts = new LTStringTokenizer(s, seperator);
-    HashMap map = new HashMap();
-    List retval = new Vector();
+    HashMap<String,Integer> map = new HashMap<String,Integer>();
+    List<String> retval = new Vector<String>();
 
     String str = lts.next();
     while (str != null) {
@@ -273,11 +273,11 @@ public class StringOp {
       mainCore(args);
     }
     catch (IOException e) {
-      if (Monitor.logLevel > 3) Monitor.log("IO exception: " + e.getMessage());
+      Monitor.log("IO exception: " + e.getMessage(),Monitor.LOG_LEVEL_THREE);
       e.printStackTrace();
     }
     catch (RuntimeException e) {
-      if (Monitor.logLevel > 3) Monitor.log("Runtime exception: " + e.getMessage());
+      Monitor.log("Runtime exception: " + e.getMessage(),Monitor.LOG_LEVEL_THREE);
       e.printStackTrace();
     }
   }
@@ -297,20 +297,20 @@ public class StringOp {
       case 1:
         System.out.print("File name: ");
         string = fileName2String(console.readLine());
-        if (Monitor.logLevel > 3) Monitor.log("Original string: <" + string + ">");
-        if (Monitor.logLevel > 3) Monitor.log("Shrunk string: <" + shrinkWhitespace(string) + ">");
+        Monitor.log("Original string: <" + string + ">",Monitor.LOG_LEVEL_THREE);
+        Monitor.log("Shrunk string: <" + shrinkWhitespace(string) + ">",Monitor.LOG_LEVEL_THREE);
         break;
       case 2:
         System.out.print("File name: ");
         string = fileName2String(console.readLine());
-        if (Monitor.logLevel > 3) Monitor.log("Original string: <" + string + ">");
-        if (Monitor.logLevel > 3) Monitor.log("Depunctuated string: <" + removePunctuation(string) + ">");
+        Monitor.log("Original string: <" + string + ">",Monitor.LOG_LEVEL_THREE);
+        Monitor.log("Depunctuated string: <" + removePunctuation(string) + ">",Monitor.LOG_LEVEL_THREE);
         break;
       case 3:
-        if (Monitor.logLevel > 3) Monitor.log("nextWord test is not implemented yet.");
+        Monitor.log("nextWord test is not implemented yet.",Monitor.LOG_LEVEL_THREE);
         break;
       default:
-        if (Monitor.logLevel > 3) Monitor.log("Selection out of range.");
+        Monitor.log("Selection out of range.",Monitor.LOG_LEVEL_THREE);
     }
   }
 

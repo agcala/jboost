@@ -1,8 +1,8 @@
 package jboost;
 
-import jboost.booster.Bag;
-import jboost.learner.Splitter;
-import jboost.learner.SplitterBuilder;
+import jboost.booster.bag.Bag;
+import jboost.learner.splitter_builders.SplitterBuilder;
+import jboost.learner.splitters.Splitter;
 
 /**
  * A class that holds a candidate base-rule. This includes the Splitter, the

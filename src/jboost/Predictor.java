@@ -1,8 +1,8 @@
 package jboost;
 
-import jboost.booster.Prediction;
+import jboost.booster.prediction.Prediction;
 import jboost.examples.Instance;
-import jboost.learner.IncompAttException;
+import jboost.exceptions.IncompAttException;
 
 /**
  * An object that can classify <code>Instance</code>s

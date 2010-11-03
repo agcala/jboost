@@ -3,9 +3,9 @@ package jboost.atree;
 import java.io.Serializable;
 import java.util.Vector;
 
-import jboost.booster.Prediction;
+import jboost.booster.prediction.Prediction;
 import jboost.examples.Instance;
-import jboost.learner.IncompAttException;
+import jboost.exceptions.IncompAttException;
 
 /**
  * Holds a contribution to the prediction sum, links to the child
@@ -16,16 +16,16 @@ import jboost.learner.IncompAttException;
  *          /cvsroot/jboost/jboost/src/jboost/atree/PredictorNode.java,v 1.3
  *          2008/04/07 17:09:06 dhsu Exp $
  */
-class PredictorNode implements Serializable {
+public class PredictorNode implements Serializable {
 
   /** the prediction value associated with this node. */
-  protected Prediction prediction;
+  public Prediction prediction;
 
   /**
    * A textual identifier, has the format <parentSplitterNodeID>:index The id of
    * the root predictor node is "R".
    */
-  protected String id;
+  public String id;
 
   /**
    * An index signifying the iteration in which this node was added to the tree.
@@ -44,13 +44,13 @@ class PredictorNode implements Serializable {
   int branchIndex;
 
   /** constructor */
-  public PredictorNode(Prediction p, String ID, int ind, Vector sp, SplitterNode parent, int branchIndex) throws Error {
+  public PredictorNode(Prediction p, String ID, int ind, Vector<SplitterNode> sp, SplitterNode parent, int branchIndex) throws Error {
     prediction = p;
     id = ID;
     index = ind;
     this.parent = parent;
     this.branchIndex = branchIndex;
-    if (sp == null) splitterNodes = new Vector();
+    if (sp == null) splitterNodes = new Vector<SplitterNode>();
     else splitterNodes = sp;
   }
 
@@ -81,7 +81,7 @@ class PredictorNode implements Serializable {
     }
 
     Prediction retval = (Prediction) prediction.clone();
-    Prediction tmp = null;
+    
     for (int i = 0; i < numIterations; i++) {
       PredictorNode p = findPrediction(instance, i, this);
       if (p == null) { // we could not get to this iteration, so we continue to
@@ -186,16 +186,16 @@ class PredictorNode implements Serializable {
    * The splitter nodes that are the children of this node. In predicting, the
    * algorithm follows all the children, and sums their predictions
    */
-  protected Vector splitterNodes;
+  public Vector<SplitterNode> splitterNodes;
 
-  public Vector getSplitterNodes() {
+  public Vector<SplitterNode> getSplitterNodes() {
     return splitterNodes;
   }
 
   /**
    * Returns the number of child splitternodes.
    */
-  int getSplitterNodeNo() {
+  public int getSplitterNodeNo() {
     return (splitterNodes.size());
   }
 
@@ -217,4 +217,7 @@ class PredictorNode implements Serializable {
     return index;
   }
 
+  public Prediction getPrediction() {
+	  return prediction;
+  }
 }

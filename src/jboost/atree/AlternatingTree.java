@@ -20,13 +20,13 @@ import java.util.Vector;
 import jboost.ComplexLearner;
 import jboost.WritablePredictor;
 import jboost.booster.Booster;
-import jboost.booster.Prediction;
-import jboost.examples.AttributeDescription;
+import jboost.booster.prediction.Prediction;
 import jboost.examples.ExampleDescription;
 import jboost.examples.Instance;
-import jboost.learner.IncompAttException;
-import jboost.learner.SplitterBuilder;
+import jboost.examples.attributes.descriptions.AttributeDescription;
+import jboost.exceptions.IncompAttException;
 import jboost.learner.Summary;
+import jboost.learner.splitter_builders.SplitterBuilder;
 
 /**
  * An Alternating Tree classifier
@@ -93,14 +93,14 @@ public class AlternatingTree implements WritablePredictor, Serializable {
   /** Converts this AlternatingTree to java */
   public String toJava(String cname, String fname, String specFileName, ExampleDescription exampleDescription) throws FileNotFoundException, IOException {
     String code = "";
-    tokenMap = new HashMap();
-    tokenList = new Vector();
+    tokenMap = new HashMap<String, Integer>();
+    tokenList = new Vector<String>();
     numTokens = 0;
     maxTextAttr = 0;
     maxAttr = 0;
-    realAttrs = new TreeSet();
-    discreteAttrs = new TreeSet();
-    textAttrs = new TreeMap();
+    realAttrs = new TreeSet<Integer>();
+    discreteAttrs = new TreeSet<Integer>();
+    textAttrs = new TreeMap<Integer,TreeSet<String>>();
 
     String fname_int = fname + "_int";
 
@@ -209,12 +209,12 @@ public class AlternatingTree implements WritablePredictor, Serializable {
     code +=
         "  };\n" + "  static private final int num_keys = " + numTokens + ";\n" + "  static private boolean[][] tokens = new boolean[" + (maxTextAttr + 1)
             + "][];\n" + "  static private int text_attr[] = {";
-    for (Iterator i = textAttrs.keySet().iterator(); i.hasNext();)
+    for (Iterator<Integer> i = textAttrs.keySet().iterator(); i.hasNext();)
       code += ((Integer) i.next()) + ",";
     code += "  };\n" + "  static private final int num_text_attr = " + textAttrs.size() + ";\n" + "  static private boolean[][][] text_patterns = {\n";
-    for (Iterator i = textAttrs.keySet().iterator(); i.hasNext();) {
+    for (Iterator<Integer> i = textAttrs.keySet().iterator(); i.hasNext();) {
       code += "    {\n";
-      for (Iterator j = ((Set) textAttrs.get(i.next())).iterator(); j.hasNext();) {
+      for (Iterator<String> j = ((Set<String>) textAttrs.get(i.next())).iterator(); j.hasNext();) {
         String p = (String) j.next();
         code += "      {";
         int l = p.length();
@@ -225,15 +225,15 @@ public class AlternatingTree implements WritablePredictor, Serializable {
       code += "    },\n";
     }
     code += "  };\n" + "  static private int real_attr[] = {";
-    for (Iterator i = realAttrs.iterator(); i.hasNext();)
+    for (Iterator<Integer> i = realAttrs.iterator(); i.hasNext();)
       code += ((Integer) i.next()) + ",";
     code += "  };\n" + "  static private int disc_attr[] = {";
-    for (Iterator i = discreteAttrs.iterator(); i.hasNext();)
+    for (Iterator<Integer> i = discreteAttrs.iterator(); i.hasNext();)
       code += ((Integer) i.next()) + ",";
     code +=
         "  };\n" + "  static private Object[] attr;\n" + "  static private Map hash = null;\n" + "  static private Map[] disc_val_map = null;\n"
             + "  static private String[][] disc_attr_vals = {\n";
-    for (Iterator i = discreteAttrs.iterator(); i.hasNext();) {
+    for (Iterator<Integer> i = discreteAttrs.iterator(); i.hasNext();) {
       AttributeDescription a = exampleDescription.getAttributeDescription(((Integer) i.next()).intValue());
       code += "    {\n";
       for (int j = 0; j < a.getNoOfValues(); j++)
@@ -358,12 +358,12 @@ public class AlternatingTree implements WritablePredictor, Serializable {
   public String toC(String fname, ExampleDescription exampleDescription) {
     String preamble = "";
     String code = "";
-    tokenMap = new HashMap();
-    tokenList = new Vector();
+    tokenMap = new HashMap<String,Integer>();
+    tokenList = new Vector<String>();
     numTokens = 0;
     maxTextAttr = 0;
     realAttrs = discreteAttrs = null;
-    textAttrs = new TreeMap();
+    textAttrs = new TreeMap<Integer,TreeSet<String>>();
     int hashTableSize = -1;
 
     preamble +=
@@ -503,13 +503,13 @@ public class AlternatingTree implements WritablePredictor, Serializable {
     preamble +=
         "};\n" + "#define num_keys  (" + numTokens + ")\n" + "static HashTableEntry_t **hash_table = NULL;\n" + "#define hash_table_size  (" + hashTableSize
             + ")\n" + "static char *tokens[" + (maxTextAttr + 1) + "];\n" + "static int text_attr[] = {";
-    for (Iterator i = textAttrs.keySet().iterator(); i.hasNext();)
+    for (Iterator<Integer> i = textAttrs.keySet().iterator(); i.hasNext();)
       preamble += ((Integer) i.next()) + ",";
     preamble += "};\n" + "#define num_text_attr  (" + textAttrs.size() + ")\n";
     int c = 0;
-    for (Iterator i = textAttrs.keySet().iterator(); i.hasNext();) {
+    for (Iterator<Integer> i = textAttrs.keySet().iterator(); i.hasNext();) {
       preamble += "static char *text_pat_" + c + "[] = {";
-      for (Iterator j = ((Set) textAttrs.get(i.next())).iterator(); j.hasNext();) {
+      for (Iterator<String> j = ((Set<String>) textAttrs.get(i.next())).iterator(); j.hasNext();) {
         preamble += "\"" + j.next() + "\",";
       }
       preamble += "NULL};\n";
@@ -526,15 +526,15 @@ public class AlternatingTree implements WritablePredictor, Serializable {
     return preamble + code;
   }
 
-  private Map tokenMap; // maps text strings to tokens
-  private Vector tokenList; // maps tokens to text strings
+  private Map<String,Integer> tokenMap; // maps text strings to tokens
+  private Vector<String> tokenList; // maps tokens to text strings
   private int numTokens; // number of tokens added to map so far
   private int maxTextAttr; // maximum index of any used text attribute
   private int maxAttr; // maximum index of any used attribute
-  private Map textAttrs; // indices of all used text attributes
+  private Map<Integer,TreeSet<String>> textAttrs; // indices of all used text attributes
   // mapped to ngram patterns with which they occur
-  private Set realAttrs; // indices of all used real attributes
-  private Set discreteAttrs; // indices of all used discrete attributes
+  private Set<Integer> realAttrs; // indices of all used real attributes
+  private Set<Integer> discreteAttrs; // indices of all used discrete attributes
   private static final int[] primes = { 1031, 2053, 4099, 8209, 16411, 32771, 65537, 131101, 262147, 524309, 1048583, 2097169, 4194319 };
 
   private String makeCode(PredictorNode pn, String tab) {
@@ -583,9 +583,9 @@ public class AlternatingTree implements WritablePredictor, Serializable {
         }
 
         Integer idx = new Integer(summary.index);
-        if (!textAttrs.containsKey(idx)) textAttrs.put(idx, new TreeSet());
+        if (!textAttrs.containsKey(idx)) textAttrs.put(idx, new TreeSet<String>());
         String p = (new StringTokenizer(s)).nextToken();
-        ((TreeSet) textAttrs.get(idx)).add(p);
+        ((TreeSet<String>) textAttrs.get(idx)).add(p);
 
         if (summary.index > maxTextAttr) maxTextAttr = summary.index;
 
@@ -841,12 +841,12 @@ public class AlternatingTree implements WritablePredictor, Serializable {
    * @param splitters
    *            the list of SplitterNodes from this tree
    */
-  public void getNodes(ArrayList predictors, ArrayList splitters) {
+  public void getNodes(ArrayList<PredictorNode> predictors, ArrayList<SplitterNode> splitters) {
     if (predictors == null || splitters == null) {
       throw new IllegalArgumentException("Can not use null lists.");
     }
 
-    Stack stack = new Stack();
+    Stack<PredictorNode> stack = new Stack<PredictorNode>();
     PredictorNode node = getRoot();
     stack.push(node);
 
@@ -884,7 +884,7 @@ public class AlternatingTree implements WritablePredictor, Serializable {
 
 }
 
-class NodeDescription implements Comparable {
+class NodeDescription implements Comparable<Object> {
 
   int no;
   public String desc;

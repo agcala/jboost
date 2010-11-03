@@ -4,13 +4,16 @@ import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Vector;
 
+import jboost.examples.attributes.descriptions.GloWord;
+
+
 /** defines a mapping from words to tokens */
 public class WordTable implements Serializable {
 
-  HashMap map; // mapping from string to int
-  int size; // # unique words seen so far (starts with 0)
-  boolean frozen; // true if no more tokens
-  Vector words; // mapping from int to string
+  public HashMap<String,GloWord> map; // mapping from string to int
+  public int size; // # unique words seen so far (starts with 0)
+  public boolean frozen; // true if no more tokens
+  public Vector<String> words; // mapping from int to string
 
   public void setFrozen(boolean flag) {
     frozen = flag;
@@ -21,10 +24,10 @@ public class WordTable implements Serializable {
   }
 
   WordTable() {
-    map = new HashMap();
+    map = new HashMap<String,GloWord>();
     size = 0;
     frozen = false;
-    words = new Vector();
+    words = new Vector<String>();
   }
 
   public String toString() {

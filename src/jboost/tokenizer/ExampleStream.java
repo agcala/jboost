@@ -2,12 +2,16 @@ package jboost.tokenizer;
 
 import java.io.IOException;
 
-import jboost.examples.Attribute;
 import jboost.examples.Example;
 import jboost.examples.ExampleDescription;
-import jboost.examples.IntegerAttribute;
-import jboost.examples.Label;
-import jboost.examples.RealAttribute;
+import jboost.examples.attributes.Attribute;
+import jboost.examples.attributes.IntegerAttribute;
+import jboost.examples.attributes.Label;
+import jboost.examples.attributes.RealAttribute;
+import jboost.exceptions.BadAttException;
+import jboost.exceptions.BadDataFileException;
+import jboost.exceptions.BadExaException;
+import jboost.exceptions.ParseException;
 import jboost.monitor.Monitor;
 
 /**
@@ -65,7 +69,7 @@ public class ExampleStream {
     }
     catch (BadExaException e) { // bad example
       System.err.println("BadExaException at data item " + o);
-      Monitor.log("BadExaException at data item " + o);
+      Monitor.log("BadExaException at data item " + o,Monitor.LOG_LEVEL_ALWAYS);
     }
     return (retval);
   }
@@ -90,7 +94,7 @@ public class ExampleStream {
       }
       catch (BadExaException e) { // bad example
         System.err.println("BadExaException " + "Example beginning at line " + ds.getLineNumber() + "\n" + e.getMessage());
-        Monitor.log("BadExaException " + "Example beginning at line " + ds.getLineNumber() + "\n" + e.getMessage());
+        Monitor.log("BadExaException " + "Example beginning at line " + ds.getLineNumber() + "\n" + e.getMessage(),Monitor.LOG_LEVEL_ALWAYS);
         numBadExa++;
         if (numBadExa > maxBadExa) {
           throw new BadDataFileException("More than " + maxBadExa + " bad examples.", ds.getLineNumber());
@@ -110,9 +114,9 @@ public class ExampleStream {
    * @return example
    */
   public Example parseExampleText(String[] exaText) throws BadExaException {
-    if (Monitor.logLevel > 3) {
-      Monitor.log("ExampleStream.parseExampleText Parsing Example:");
-    }
+    
+    Monitor.log("ExampleStream.parseExampleText Parsing Example:",Monitor.LOG_LEVEL_THREE);
+    
 
     int numAtt = ds.ed.getNoOfAttributes();
     Attribute[] attArray = new Attribute[numAtt];
@@ -140,9 +144,9 @@ public class ExampleStream {
           index = ((IntegerAttribute) ds.ed.getIndexDescription().str2Att(exaText[i])).getValue();
         }
         else {
-          if (Monitor.logLevel > 3) {
-            Monitor.log(ds.ed.getAttributeDescription(j).getAttributeName() + ":" + exaText[i]);
-          }
+        
+          Monitor.log(ds.ed.getAttributeDescription(j).getAttributeName() + ":" + exaText[i],Monitor.LOG_LEVEL_THREE);
+          
           attArray[j] = ds.ed.getAttributeDescription(j).str2Att(exaText[i]);
           j++;
         }

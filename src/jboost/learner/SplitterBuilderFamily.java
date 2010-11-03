@@ -5,6 +5,8 @@ import java.util.Vector;
 import jboost.booster.Booster;
 import jboost.controller.Configuration;
 import jboost.examples.ExampleDescription;
+import jboost.exceptions.IncompAttException;
+import jboost.learner.splitter_builders.SplitterBuilder;
 
 /**
  * Implements a meta-class for SplitterBuilders of a certain general type, for
@@ -26,8 +28,8 @@ public abstract class SplitterBuilderFamily {
    * Constructs a Vector of SplitterBuilderFamilys Uses
    * StumpSplitterBuilderFamily as the default splitter builders
    */
-  public static Vector factory(Configuration config) {
-    Vector tmp = new Vector();
+  public static Vector<SplitterBuilderFamily> factory(Configuration config) {
+    Vector<SplitterBuilderFamily> tmp = new Vector<SplitterBuilderFamily>();
     SplitterBuilderFamily sbf = null;
 
     sbf = new StumpSplitterBuilderFamily(config);
@@ -50,13 +52,13 @@ public abstract class SplitterBuilderFamily {
    *            handled or whether the default policy should be used to
    *            determine which should be handled.
    */
-  public abstract Vector build(ExampleDescription exDesc, int[] attr, boolean usePolicy, Configuration config, Booster booster) throws IncompAttException;
+  public abstract Vector<SplitterBuilder> build(ExampleDescription exDesc, int[] attr, boolean usePolicy, Configuration config, Booster booster) throws IncompAttException;
 
   /**
    * Use the default policy to construct a Vector of SplitterBuilders for all
    * attributes.
    */
-  public Vector build(ExampleDescription ed, Configuration config, Booster booster) throws IncompAttException {
+  public Vector<SplitterBuilder> build(ExampleDescription ed, Configuration config, Booster booster) throws IncompAttException {
     int[] attr = new int[ed.getAttributes().length];
     for (int i = 0; i < attr.length; i++) {
       attr[i] = i;

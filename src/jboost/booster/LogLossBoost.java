@@ -1,5 +1,6 @@
 package jboost.booster;
 
+import jboost.booster.prediction.Prediction;
 import jboost.controller.Configuration;
 
 /**
@@ -65,31 +66,4 @@ public class LogLossBoost extends AdaBoost {
     return 1 / (1 + Math.exp(margin));
   }
 
-  /**
-   * Update the examples m_margins and m_weights using the logistic loss
-   * computation
-   * 
-   * @param predictions
-   *            the value of the prediction for each example
-   * @param exampleIndex
-   *            the indexes of each example to update
-   */
-//  public void update(Prediction[] predictions, int[][] exampleIndex) {
-//    // exchange pointers of new and old m_weights
-//    for (int i = 0; i < m_weights.length; i++) {
-//      m_oldWeights[i] = m_weights[i];
-//    }
-//
-//    // update m_weights and m_margins
-//    for (int i = 0; i < exampleIndex.length; i++) {
-//      double p = predictions[i].getClassScores()[1];
-//      double[] value = new double[] { -p, p };
-//      int[] indexes = exampleIndex[i];
-//      for (int j = 0; j < indexes.length; j++) {
-//        int example = indexes[j];
-//        m_margins[example] += value[m_labels[example]];
-//        m_weights[example] = calculateWeight(m_margins[example]);
-//      }
-//    }
-//  }
 }

@@ -19,30 +19,33 @@ import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ThreadPoolExecutor;
 
 import jboost.CandidateSplit;
-import jboost.NotSupportedException;
 import jboost.Predictor;
 import jboost.WritablePredictor;
 import jboost.atree.AlternatingTree;
-import jboost.atree.InstrumentException;
 import jboost.atree.InstrumentedAlternatingTree;
 import jboost.booster.AbstractBooster;
 import jboost.booster.Booster;
-import jboost.booster.Prediction;
+import jboost.booster.BrownBoost;
 import jboost.booster.RobustBoost;
-import jboost.examples.BadLabelException;
+import jboost.booster.prediction.Prediction;
 import jboost.examples.Example;
 import jboost.examples.ExampleDescription;
 import jboost.examples.ExampleSet;
-import jboost.examples.Label;
-import jboost.examples.LabelDescription;
 import jboost.examples.WordTable;
-import jboost.learner.IncompAttException;
-import jboost.learner.SplitterBuilder;
+import jboost.examples.attributes.Label;
+import jboost.examples.attributes.descriptions.LabelDescription;
+import jboost.exceptions.BadCommandException;
+import jboost.exceptions.BadLabelException;
+import jboost.exceptions.ConfigurationException;
+import jboost.exceptions.IncompAttException;
+import jboost.exceptions.InstrumentException;
+import jboost.exceptions.NotSupportedException;
+import jboost.exceptions.ParseException;
 import jboost.learner.SplitterBuilderFamily;
+import jboost.learner.splitter_builders.SplitterBuilder;
 import jboost.monitor.Monitor;
 import jboost.tokenizer.DataStream;
 import jboost.tokenizer.ExampleStream;
-import jboost.tokenizer.ParseException;
 import jboost.tokenizer.jboost_DataStream;
 import jboost.util.ExecutorSinglet;
 
@@ -58,7 +61,7 @@ public class Controller {
   // main objects
   private Booster m_booster;
   private InstrumentedAlternatingTree m_learningTree;
-  private Vector m_splitterBuilderVector;
+  private Vector<SplitterBuilder> m_splitterBuilderVector;
 
   // configuration object
   private Configuration m_config;
@@ -131,9 +134,7 @@ public class Controller {
     if (nthreads_str != null) { // something was specified
       int nthreads = Integer.parseInt(nthreads_str);
       if (nthreads > 0) {
-        if (Monitor.logLevel > 1) {
-          Monitor.log("Initializing thread pool of size " + nthreads);
-        }
+        Monitor.log("Initializing thread pool of size " + nthreads,Monitor.LOG_LEVEL_ONE);
         ExecutorService pe = Executors.newFixedThreadPool(nthreads);
         ExecutorSinglet.setExecutor(pe);
       }
@@ -143,13 +144,10 @@ public class Controller {
     // initialize the m_booster
     LabelDescription labelDescription = m_exampleDescription.getLabelDescription();
     int noOfLabels = labelDescription.getNoOfValues();
-    boolean multiLabel = labelDescription.isMultiLabel();
-    m_booster = AbstractBooster.getInstance(m_config, noOfLabels, multiLabel);
+    m_booster = AbstractBooster.getInstance(m_config, noOfLabels);
 
-    Monitor.log("The m_booster is: " + m_booster);
-    if (Monitor.logLevel > 1) {
-      Monitor.log("The m_booster is: " + m_booster);
-    }
+    Monitor.log("The m_booster is: " + m_booster,Monitor.LOG_LEVEL_ALWAYS);
+    Monitor.log("The m_booster is: " + m_booster,Monitor.LOG_LEVEL_ONE);
 
     // build the splitterBuilder array
     buildSplitterBuilderArray();
@@ -163,8 +161,8 @@ public class Controller {
     try {
       // read data
       readTrainData();
-      System.out.println("Monitor log level: " + Monitor.logLevel);
-      if (Monitor.logLevel > 0) {
+      System.out.println("Monitor log level: " + Monitor.getLogLevel());
+      if (Monitor.getLogLevel() > Monitor.LOG_LEVEL_ZERO) {
         // XXX: why is this dependent on the logLevel?
         System.out.println("Reading test data");
         readTestData();
@@ -213,7 +211,7 @@ public class Controller {
       // initialize alternating tree
       m_learningTree = new InstrumentedAlternatingTree(m_splitterBuilderVector, m_booster, m_trainSetIndices, m_config);
       System.out.println("Finished creating root (iteration 0)");
-      if (Monitor.logLevel > 1) {
+      if (Monitor.getLogLevel() > Monitor.LOG_LEVEL_ONE) {
         m_monitor.logIteration(0, // iteration
                                m_learningTree.getCombinedPredictor(), m_learningTree.getLastBasePredictor());
       }
@@ -227,9 +225,7 @@ public class Controller {
     learn(m_config.getInt("numRounds", DEFAULT_NUMROUNDS));
     stop = System.currentTimeMillis();
 
-    if (Monitor.logLevel > 1) {
-      Monitor.log("It took " + (stop - start) / 1000.0 + " seconds to learn.");
-    }
+    Monitor.log("It took " + (stop - start) / 1000.0 + " seconds to learn.",Monitor.LOG_LEVEL_ONE);
 
   }
 
@@ -244,9 +240,8 @@ public class Controller {
 
     WritablePredictor res = m_learningTree.getCombinedPredictor();
 
-    if (Monitor.logLevel > 5) {
-      Monitor.log(WordTable.globalTable);
-    }
+    Monitor.log(WordTable.globalTable,Monitor.LOG_LEVEL_FIVE);
+   
 
     // output a serialization of the alternating tree
     // String serializedFile= m_config.getSerializationOutputFileName();
@@ -279,7 +274,7 @@ public class Controller {
       generateCode(res, "java", java, m_config.getString("javaOutputClass", "predict"));
     }
 
-    if (Monitor.logLevel > 1) {
+    if (Monitor.getLogLevel() > Monitor.LOG_LEVEL_ONE) {
       test(res);
     }
 
@@ -370,13 +365,12 @@ public class Controller {
       // System.out.println("Started learning iteration " + iter);
 
       start = System.currentTimeMillis();
-      Vector candidates = m_learningTree.getCandidates();
+      Vector<CandidateSplit> candidates = m_learningTree.getCandidates();
       stop = System.currentTimeMillis();
-      if (Monitor.logLevel > 3) {
-        Monitor.log("Learning iteration " + iter + " candidates are:");
-        Monitor.log(candidates.toString());
-        Monitor.log("It took " + (stop - start) / 1000.0 + " seconds to generate candidates Vector for iteration " + iter);
-      }
+      Monitor.log("Learning iteration " + iter + " candidates are:",Monitor.LOG_LEVEL_THREE);
+      Monitor.log(candidates.toString(),Monitor.LOG_LEVEL_THREE);
+      Monitor.log("It took " + (stop - start) / 1000.0 + " seconds to generate candidates Vector for iteration " + iter,Monitor.LOG_LEVEL_THREE);
+      
 
       // This piece should be replaced by a more general tool to
       // measure the goodness of a split.
@@ -389,7 +383,7 @@ public class Controller {
       double[] losses = new double[candidates.size()];
 
       int i = 0;
-      for (Iterator ci = candidates.iterator(); ci.hasNext();) {
+      for (Iterator<CandidateSplit> ci = candidates.iterator(); ci.hasNext();) {
         CandidateSplit candidate = (CandidateSplit) ci.next();
         SplitEvaluatorWorker sew = new SplitEvaluatorWorker(candidate, losses, i, candidateCount);
         try {
@@ -428,17 +422,15 @@ public class Controller {
         }
       }
 
-      if (Monitor.logLevel > 3) {
-        Monitor.log("Best candidate is: " + (CandidateSplit) candidates.get(best) + "\n");
-      }
+      Monitor.log("Best candidate is: " + (CandidateSplit) candidates.get(best) + "\n",Monitor.LOG_LEVEL_THREE);
+      
 
       // add the candidate with lowest loss
       start = System.currentTimeMillis();
       m_learningTree.addCandidate((CandidateSplit) candidates.get(best));
       stop = System.currentTimeMillis();
-      if (Monitor.logLevel > 3) {
-        Monitor.log("It took " + (stop - start) / 1000.0 + " seconds to add candidate for iteration " + iter);
-      }
+      Monitor.log("It took " + (stop - start) / 1000.0 + " seconds to add candidate for iteration " + iter,Monitor.LOG_LEVEL_THREE);
+      
 
       // binary case of RobustBoost
       if (m_booster instanceof RobustBoost) {
@@ -447,9 +439,17 @@ public class Controller {
                            + f.format(((RobustBoost) m_booster).getEffectiveNumExamples()) + ", Active Examples= "
                            + ((RobustBoost) m_booster).getNumExamplesHigherThan(threshold) + "]");
       }
+      else if (m_booster instanceof BrownBoost) {
+    	  NumberFormat f = new DecimalFormat("0.00000");
+    	  System.out.println("" + "[Iter= " + iter + ", Time= " + f.format(((BrownBoost) m_booster).getCurrentTime()) + ", Effective Examples= "
+    			  + f.format(((BrownBoost) m_booster).getEffectiveNumExamples()) + ", Active Examples= "
+    			  + ((BrownBoost) m_booster).getNumExamplesHigherThan(threshold) + "]");
+      }
+
+
       else System.out.println("Finished learning iteration " + iter);
 
-      if (Monitor.logLevel > 1) {
+      if (Monitor.getLogLevel() > Monitor.LOG_LEVEL_ONE) {
         m_monitor.logIteration(iter, m_learningTree.getCombinedPredictor(), m_learningTree.getLastBasePredictor());
       }
     }
@@ -466,21 +466,19 @@ public class Controller {
     int size = m_testSet.getExampleNo();
     int i = 0;
     Example ex = null;
-    Monitor.log("Testing rule.");
-    LabelDescription labelDescription = m_exampleDescription.getLabelDescription();
+    Monitor.log("Testing rule.",Monitor.LOG_LEVEL_ALWAYS);
     try {
       for (i = 0; i < size; i++) {
         ex = m_testSet.getExample(i);
         Prediction prediction = cp.predict(ex.getInstance());
         Label label = ex.getLabel();
         if (!prediction.getBestClass().equals(label)) {
-          if (Monitor.logLevel > 3) {
-            Monitor.log("Test Example " + i + "   -----------------------------");
-            Monitor.log(ex);
-            Monitor.log("------------------------------------------");
-            Monitor.log(prediction);
-            Monitor.log("Explanation: " + ((AlternatingTree) cp).explain(ex.getInstance()));
-          }
+            Monitor.log("Test Example " + i + "   -----------------------------",Monitor.LOG_LEVEL_THREE);
+            Monitor.log(ex,Monitor.LOG_LEVEL_THREE);
+            Monitor.log("------------------------------------------",Monitor.LOG_LEVEL_THREE);
+            Monitor.log(prediction,Monitor.LOG_LEVEL_THREE);
+            Monitor.log("Explanation: " + ((AlternatingTree) cp).explain(ex.getInstance()),Monitor.LOG_LEVEL_THREE);
+          
         }
       }
     }
@@ -495,33 +493,18 @@ public class Controller {
    * @throws IncompAttException
    */
   private void buildSplitterBuilderArray() throws IncompAttException {
-    Vector sbf = SplitterBuilderFamily.factory(m_config);
-    m_splitterBuilderVector = new Vector();
+    Vector<SplitterBuilderFamily> sbf = SplitterBuilderFamily.factory(m_config);
+    m_splitterBuilderVector = new Vector<SplitterBuilder>();
 
     for (int i = 0; i < sbf.size(); i++) {
       m_splitterBuilderVector.addAll(((SplitterBuilderFamily) sbf.get(i)).build(m_exampleDescription, m_config, m_booster));
     }
 
-    if (Monitor.logLevel > 3) {
-      Monitor.log("The initial array of splitter Builders is:");
+      Monitor.log("The initial array of splitter Builders is:",Monitor.LOG_LEVEL_THREE);
       for (int i = 0; i < m_splitterBuilderVector.size(); i++) {
-        Monitor.log("builder " + i + m_splitterBuilderVector.get(i));
+        Monitor.log("builder " + i + m_splitterBuilderVector.get(i),Monitor.LOG_LEVEL_THREE);
       }
-    }
-  }
-
-  /**
-   * Add example to booster and training set. Update SplitterBuilder vector for
-   * this example
-   * 
-   * @param counter
-   * @param example
-   * @param exampleWeight
-   */
-  private void addTrainingExample(int counter, Example example, double exampleWeight) {
-
-    addTrainingExample(counter, example, exampleWeight, 0.0);
-
+    
   }
 
   /**
@@ -535,16 +518,15 @@ public class Controller {
    */
   private void addTrainingExample(int counter, Example example, double exampleWeight, double margin) {
 
-    if (Monitor.logLevel > 0) {
+    if (Monitor.getLogLevel() > Monitor.LOG_LEVEL_ZERO) {
       m_trainSet.addExample(counter, example);
     }
 
     m_booster.addExample(counter, example.getLabel(), exampleWeight, margin);
 
     for (int i = 0; i < m_splitterBuilderVector.size(); i++) {
-      if (Monitor.logLevel > 5) {
-        Monitor.log("the class of splitterBuilder " + i + " is " + m_splitterBuilderVector.get(i).getClass());
-      }
+      Monitor.log("the class of splitterBuilder " + i + " is " + m_splitterBuilderVector.get(i).getClass(),Monitor.LOG_LEVEL_FIVE);
+      
       ((SplitterBuilder) m_splitterBuilderVector.get(i)).addExample(counter, example);
     }
   }
@@ -584,17 +566,22 @@ public class Controller {
         // System.out.println("margin:"+margin);
 
         if (m_booster instanceof RobustBoost) {
-          RobustBoost rb = (RobustBoost) m_booster;
-          weight = rb.calculateWeight(example.getLabel(), margin, rb.getCurrentTime());
-          // System.out.println("weight=" + weight);
+        	RobustBoost rb = (RobustBoost) m_booster;
+        	weight = rb.calculateWeight(example.getLabel(), margin, rb.getCurrentTime());
+        	// System.out.println("weight=" + weight);
+        }
+        else if (m_booster instanceof BrownBoost) {
+        	BrownBoost bb = (BrownBoost) m_booster;
+        	weight = bb.calculateWeight(example.getLabel(), margin, bb.getCurrentTime());
+        	// System.out.println("weight=" + weight);
         }
         else {
-          weight = m_booster.calculateWeight(margin);
+        	weight = m_booster.calculateWeight(margin);
         }
 
         if (weight * exampleWeight < threshold) {
-          accepted = false;
-          rejected++;
+        	accepted = false;
+        	rejected++;
         }
 
       }

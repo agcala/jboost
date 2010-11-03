@@ -9,8 +9,11 @@ import java.util.StringTokenizer;
 import java.util.Vector;
 
 import jboost.controller.Configuration;
-import jboost.examples.AttributeDescription;
 import jboost.examples.ExampleDescription;
+import jboost.examples.attributes.descriptions.AttributeDescription;
+import jboost.exceptions.BadExaException;
+import jboost.exceptions.BadLabelException;
+import jboost.exceptions.ParseException;
 import jboost.monitor.Monitor;
 
 /**
@@ -100,7 +103,7 @@ public class UCI_DataStream extends DataStream {
    */
   public String[] getExampleText() throws BadExaException {
     String[] retval = new String[noAttr + 1];
-    String exa = null;
+    
     LTStringTokenizer exaTokens = null;
     String nextAtt = null;
     String exaStr = null;
@@ -195,7 +198,7 @@ public class UCI_DataStream extends DataStream {
     String valList = null;
     String type = null;
     String name = null;
-    Vector okValues = null;
+    Vector<String> okValues = null;
     if (labelSet) {
       StringTokenizer st = new StringTokenizer(b, ":");
       if (st.hasMoreTokens() == false) throw (new SpecFileException("Cannot parse Spec file line:\n" + b));
@@ -223,14 +226,19 @@ public class UCI_DataStream extends DataStream {
       type = "finite";
     }
     if (type.equals("finite")) {
-      okValues = (Vector) StringOp.toUniqList(valList, ",");
+      okValues = (Vector<String>) StringOp.toUniqList(valList, ",");
       conf.addOption("caseSignificant", "+");
     }
     if (!(type.equals("finite") || type.equals("text") || type.equals("number"))) throw (new SpecFileException("Type not valid for attribute " + b));
 
     if (!labelSet) name = "labels";
 
-    AttributeDescription ad = AttributeDescription.build(name, type, conf, okValues);
+    AttributeDescription ad = null;
+    try {
+    	ad = AttributeDescription.build(name, type, conf, okValues);
+    } catch (BadLabelException blEx) {
+    	throw new SpecFileException(blEx.getMessage());
+    }
     if (ad == null) throw (new SpecFileException("Cannot parse Spec file line:\n" + b));
 
     // Needs to check for errors in config file.
@@ -251,10 +259,10 @@ public class UCI_DataStream extends DataStream {
     String[] tmp = null;
     while ((tmp = ed.getExampleText()) != null) {
       for (int i = 0; i < tmp.length; i++) {
-        if (Monitor.logLevel > 3) Monitor.log(tmp[i]);
+        Monitor.log(tmp[i],Monitor.LOG_LEVEL_THREE);
       }
     }
-    if (Monitor.logLevel > 3) Monitor.log("" + ed);
+    Monitor.log("" + ed,Monitor.LOG_LEVEL_THREE);
   }
 
 }

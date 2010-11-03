@@ -5,7 +5,8 @@ import java.util.Vector;
 import jboost.booster.Booster;
 import jboost.controller.Configuration;
 import jboost.examples.Example;
-import jboost.learner.SplitterBuilder;
+import jboost.exceptions.NotSupportedException;
+import jboost.learner.splitter_builders.SplitterBuilder;
 
 /**
  * A complex learner that generates a classifier which combines many base
@@ -24,10 +25,10 @@ import jboost.learner.SplitterBuilder;
 public abstract class ComplexLearner {
 
   /** Generate a list of candidates */
-  public abstract Vector getCandidates() throws NotSupportedException;
+  public abstract Vector<CandidateSplit> getCandidates() throws NotSupportedException;
 
   /** Add a CandidateSplit */
-  public abstract void addCandidate(CandidateSplit candidate) throws jboost.atree.InstrumentException;
+  public abstract void addCandidate(CandidateSplit candidate) throws jboost.exceptions.InstrumentException;
 
   /**
    * Gets a (base) Predictor corresponding to the candidate that was just added

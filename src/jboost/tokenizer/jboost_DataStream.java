@@ -10,8 +10,10 @@ import java.util.StringTokenizer;
 import java.util.Vector;
 
 import jboost.controller.Configuration;
-import jboost.examples.AttributeDescription;
 import jboost.examples.ExampleDescription;
+import jboost.examples.attributes.descriptions.AttributeDescription;
+import jboost.exceptions.BadExaException;
+import jboost.exceptions.BadLabelException;
 import jboost.monitor.Monitor;
 import jboost.util.FileLoader;
 
@@ -50,9 +52,9 @@ public class jboost_DataStream extends DataStream {
    */
   public jboost_DataStream(String spec, String data) throws IOException, SpecFileException, ClassNotFoundException {
     init(spec, data);
-    if (Monitor.logLevel > 3) {
-      Monitor.log("" + ed);
-    }
+    
+    Monitor.log("" + ed,Monitor.LOG_LEVEL_THREE);
+    
   }
 
   /**
@@ -232,10 +234,10 @@ public class jboost_DataStream extends DataStream {
     maxBadExa = conf.getInt("maxBadExa", 20);
 
     // Need to check for errors in config file.
-    if (Monitor.logLevel > 3) {
-      Monitor.log("" + conf);
-      Monitor.log(conf.unused());
-    }
+    
+    Monitor.log("" + conf,Monitor.LOG_LEVEL_THREE);
+    Monitor.log(conf.unused(),Monitor.LOG_LEVEL_THREE);
+    
 
     int lineCount = 0;
     while (line != null) {
@@ -294,7 +296,7 @@ public class jboost_DataStream extends DataStream {
       parsed = false;
       StringTokenizer tokens = new StringTokenizer(line, " ");
       String options = null;
-      Vector values = null;
+      Vector<String> values = null;
       if (tokens.hasMoreTokens()) {
         // get the name of the attribute
         String name = tokens.nextToken();
@@ -328,7 +330,7 @@ public class jboost_DataStream extends DataStream {
                 list = lts.next();
                 if (list != null) {
                   options = lts.rest();
-                  values = (Vector) StringOp.toUniqList(list, ",");
+                  values = (Vector<String>) StringOp.toUniqList(list, ",");
                   if (values != null) {
                     tokens = new StringTokenizer(options, " ");
                     // add options to configuration
@@ -363,7 +365,12 @@ public class jboost_DataStream extends DataStream {
               throw (new SpecFileException("No valid list of values given " + "for finite attribute: " + line));
             }
 
-            AttributeDescription attribute = AttributeDescription.build(name, type, conf, values);
+            AttributeDescription attribute = null;
+            try {
+              attribute = AttributeDescription.build(name, type, conf, values);
+            } catch (BadLabelException blEx) {
+              throw new SpecFileException(blEx.getMessage());
+            }
             // ****
 
             if (attribute != null) {
@@ -381,14 +388,14 @@ public class jboost_DataStream extends DataStream {
               }
 
               // spit out some logging info
-              if (Monitor.logLevel > 3) {
+              if (Monitor.getLogLevel() > Monitor.LOG_LEVEL_THREE) {
                 String errors = conf.getUnSpecified();
                 if (errors != null) {
-                  Monitor.log("Options not specfied for attribute: " + name + "\n" + errors + "\n");
+                  Monitor.log("Options not specfied for attribute: " + name + "\n" + errors + "\n",Monitor.LOG_LEVEL_ALWAYS);
                 }
                 errors = conf.unused();
                 if (errors != null) {
-                  Monitor.log("Options specfied but not used for attribute: " + name + "\n" + errors + "\n");
+                  Monitor.log("Options specfied but not used for attribute: " + name + "\n" + errors + "\n",Monitor.LOG_LEVEL_ALWAYS);
                 }
               }
               // this line was parsed properly

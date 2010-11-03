@@ -22,7 +22,7 @@ import java.util.Vector;
  */
 public class FileLoader {
 
-  static private Vector d_path = new Vector(5);
+  static private Vector<String> d_path = new Vector<String>(5);
   static private String JBOOST_HOME = "jboost.home";
 
   // intialization of d_path

@@ -10,19 +10,20 @@ import java.util.concurrent.RejectedExecutionException;
 
 import jboost.CandidateSplit;
 import jboost.ComplexLearner;
-import jboost.NotSupportedException;
 import jboost.Predictor;
 import jboost.WritablePredictor;
-import jboost.booster.Bag;
 import jboost.booster.Booster;
-import jboost.booster.Prediction;
-import jboost.booster.RobustBinaryPrediction;
+import jboost.booster.BrownBoost;
 import jboost.booster.RobustBoost;
+import jboost.booster.bag.Bag;
+import jboost.booster.prediction.Prediction;
 import jboost.controller.Configuration;
-import jboost.controller.ConfigurationException;
 import jboost.examples.Example;
-import jboost.learner.Splitter;
-import jboost.learner.SplitterBuilder;
+import jboost.exceptions.ConfigurationException;
+import jboost.exceptions.InstrumentException;
+import jboost.exceptions.NotSupportedException;
+import jboost.learner.splitter_builders.SplitterBuilder;
+import jboost.learner.splitters.Splitter;
 import jboost.monitor.Monitor;
 import jboost.util.ExecutorSinglet;
 
@@ -32,7 +33,6 @@ import jboost.util.ExecutorSinglet;
  * an AlternatingTree once it has learned from all the m_examples.
  */
 
-@SuppressWarnings("unchecked")
 public class InstrumentedAlternatingTree extends ComplexLearner {
 
   /**
@@ -40,14 +40,14 @@ public class InstrumentedAlternatingTree extends ComplexLearner {
    * order that the learning process added them in. The first node is the root
    * node.
    */
-  private ArrayList m_predictors;
+  private ArrayList<PredictorNode> m_predictors;
 
   /**
    * A list that holds all the {@link Splitter} nodes in the tree, ordered by
    * the order that the learning process added them in. XXX: this is not true.
    * what is this list for?
    */
-  private ArrayList m_splitters;
+  private ArrayList<SplitterNode> m_splitters;
 
   /** The time index at which nodes are added */
   private int m_index;
@@ -58,14 +58,14 @@ public class InstrumentedAlternatingTree extends ComplexLearner {
    * 
    * @{link PredictorNodeSB} nodes.
    */
-  private ArrayList m_splitterBuilders;
+  private ArrayList<PredictorNodeSB> m_PredictorNodeSBs;
 
   /**
    * The example mask corresponding to the m_examples that reach each node Each
    * example that has a true value for its mask is an example that reaches that
    * node
    */
-  private ArrayList m_masks;
+  private ArrayList<boolean[]> m_masks;
 
   /** A list of indices of examples to be used by this tree */
   private int[] m_examples;
@@ -94,14 +94,14 @@ public class InstrumentedAlternatingTree extends ComplexLearner {
    *            The configuration information.
    */
 
-  public InstrumentedAlternatingTree(Vector sb, Booster b, int[] ex, Configuration config) {
+  public InstrumentedAlternatingTree(Vector<SplitterBuilder> sb, Booster b, int[] ex, Configuration config) {
 
     init(sb, b, ex, config);
     // create root node
     createRoot();
   }
 
-  public InstrumentedAlternatingTree(AlternatingTree tree, Vector splitterbuilders, Booster booster, int[] examples, Configuration config)
+  public InstrumentedAlternatingTree(AlternatingTree tree, Vector<SplitterBuilder> splitterbuilders, Booster booster, int[] examples, Configuration config)
   throws InstrumentException,
   NotSupportedException {
 
@@ -110,20 +110,20 @@ public class InstrumentedAlternatingTree extends ComplexLearner {
     instrumentAlternatingTree(tree);
   }
 
-  private void init(Vector splitterbuilders, Booster booster, int[] examples, Configuration config) {
+  private void init(Vector<SplitterBuilder> splitterbuilders, Booster booster, int[] examples, Configuration config) {
     // Use the number of boosting iterations as the default
     // size for the internal lists used by this tree
     int listSize = config.getInt("numRounds", 200);
 
     // initialize the data structures used by the tree
-    m_predictors = new ArrayList(listSize);
-    m_splitters = new ArrayList(listSize);
-    m_splitterBuilders = new ArrayList(listSize);
-    m_masks = new ArrayList(listSize);
+    m_predictors = new ArrayList<PredictorNode>(listSize);
+    m_splitters = new ArrayList<SplitterNode>(listSize);
+    m_PredictorNodeSBs = new ArrayList<PredictorNodeSB>(listSize);
+    m_masks = new ArrayList<boolean[]>(listSize);
     SplitterBuilder[] initialSplitterBuilders = new SplitterBuilder[splitterbuilders.size()];
     splitterbuilders.toArray(initialSplitterBuilders);
     PredictorNodeSB pnSB = new PredictorNodeSB(0, initialSplitterBuilders);
-    m_splitterBuilders.add(pnSB);
+    m_PredictorNodeSBs.add(pnSB);
 
     m_booster = booster;
     m_examples = examples;
@@ -164,9 +164,7 @@ public class InstrumentedAlternatingTree extends ComplexLearner {
 
     // To make it behave like boost texter.
     if (m_emulateBoosTexter) {
-      if (Monitor.logLevel > 3) {
-        Monitor.log("This has been modified to behave like boostexter: " + "Instrumented ATree Constructor.");
-      }
+      Monitor.log("This has been modified to behave like boostexter: " + "Instrumented ATree Constructor.",Monitor.LOG_LEVEL_THREE);
       initialWeights[0].reset();
       tmpPred = m_booster.getPredictions(initialWeights, tmpEx);
       m_booster.update(tmpPred, tmpEx);
@@ -194,9 +192,9 @@ public class InstrumentedAlternatingTree extends ComplexLearner {
    * @return
    * @throws NotSupportedException
    */
-  public Vector getCandidates() throws NotSupportedException {
+  public Vector<CandidateSplit> getCandidates() throws NotSupportedException {
     // set initial capacity
-    Vector retval = new Vector(m_splitterBuilders.size());
+    Vector<CandidateSplit> retval = new Vector<CandidateSplit>(m_PredictorNodeSBs.size());
     Bag tmpBag = null;
 
     if (!m_emulateBoosTexter) {
@@ -219,24 +217,24 @@ public class InstrumentedAlternatingTree extends ComplexLearner {
    * @return a vector of candidate splitters
    * @throws NotSupportedException
    */
-  private Vector buildSplitters() throws NotSupportedException {
+  private Vector<CandidateSplit> buildSplitters() throws NotSupportedException {
     Executor pe = ExecutorSinglet.getExecutor();
     int childCount;
 
     // create a synchronization barrier that counts the number
     // of processed splitter builders
-    CountDownLatch sbCount = new CountDownLatch(m_splitterBuilders.size());
+    CountDownLatch sbCount = new CountDownLatch(m_PredictorNodeSBs.size());
 
-    Vector splitters = new Vector(m_splitterBuilders.size());
-    for (Iterator i = m_splitterBuilders.iterator(); i.hasNext();) {
+    Vector<CandidateSplit> splitters = new Vector<CandidateSplit>(m_PredictorNodeSBs.size());
+    for (Iterator<PredictorNodeSB> i = m_PredictorNodeSBs.iterator(); i.hasNext();) {
 
       // System.out.println("Creating new SplitterBuilderWorker and run it ...
       // ");
 
       PredictorNodeSB pSB = (PredictorNodeSB) i.next();
-      
+
       if (m_treeType == AtreeType.ADD_ROOT && pSB.pNode != 0) {
-	  if (sbCount.getCount() > 0) {
+        if (sbCount.getCount() > 0) {
           sbCount.countDown();
         }
         continue;
@@ -359,11 +357,11 @@ public class InstrumentedAlternatingTree extends ComplexLearner {
         childArray[j] = parentArray[j].spawn(examplesMask, partition[i].length);
       }
       PredictorNodeSB pnSB = new PredictorNodeSB(pInt[i], childArray);
-      m_splitterBuilders.add(pnSB);
+      m_PredictorNodeSBs.add(pnSB);
     }
     // 2) Add new splitter node.
     parent.addSplitterNode(sNode);
-    m_splitters.add(pInt);
+    m_splitters.add(sNode);
     return sNode;
   }
 
@@ -401,37 +399,8 @@ public class InstrumentedAlternatingTree extends ComplexLearner {
       lastBasePredictor = new AtreePredictor(splitter, parent, predictions, m_booster);
       node = findSplitter(parent, splitter);
 
-      // --------- RobustBoost ----------//
-
-      // binary case
-      if (m_booster instanceof RobustBoost) {
-
-        for (int i = 0; i < predictions.length; i++) {
-
-          // RobustBoost needs to scale all of the previous
-          // hyphothesis by exp(-dt)
-          if (predictions[i] instanceof RobustBinaryPrediction) {
-            // for every RobustBinaryPrediction added before this one
-            // we scale all of them by exp(-dt)
-            double dt = ((RobustBinaryPrediction) predictions[i]).getDt();
-            double exp_negative_dt = Math.exp(-dt);
-
-            for (int j = 0; j < i; j++) {
-              predictions[j].scale(exp_negative_dt);
-            }
-
-            // for each prediction before this one
-            for (int nodeidx = 0; nodeidx < m_predictors.size(); nodeidx++) {
-              PredictorNode cpn = (PredictorNode) m_predictors.get(nodeidx);
-              cpn.prediction.scale(exp_negative_dt);
-            }
-
-          }
-          else {
-            throw new RuntimeException("RobustBinaryPrediction is expected. This should never happen!");
-          }
-        }
-      }
+      m_booster.normalizePrediction(predictions,m_predictors);
+     
 
       if (node != null && predictions.length > 0) {
         for (int i = 0; i < node.predictorNodes.length; i++) {
@@ -439,7 +408,7 @@ public class InstrumentedAlternatingTree extends ComplexLearner {
         }
       }
       else {
-        SplitterBuilder[] parentArray = ((PredictorNodeSB) m_splitterBuilders.get(acand.getPredictorNode())).SB;
+        SplitterBuilder[] parentArray = ((PredictorNodeSB) m_PredictorNodeSBs.get(acand.getPredictorNode())).SB;
         node = insert(bags, parent, splitter, parentArray, predictions, partition);
       }
     }
@@ -501,7 +470,7 @@ public class InstrumentedAlternatingTree extends ComplexLearner {
         }
       }
       else {
-        SplitterBuilder[] parentArray = ((PredictorNodeSB) m_splitterBuilders.get(acand.getPredictorNode())).SB;
+        SplitterBuilder[] parentArray = ((PredictorNodeSB) m_PredictorNodeSBs.get(acand.getPredictorNode())).SB;
         insert(bags, parent, splitter, parentArray, predictions, partition);
       }
     }
@@ -520,8 +489,8 @@ public class InstrumentedAlternatingTree extends ComplexLearner {
     // get the nodes for the tree
     // the defaults for these lists should come from the tree
     // TODO:decide if we really need to return the predictors with the splitters
-    ArrayList predictors = new ArrayList(25);
-    ArrayList splitters = new ArrayList(25);
+    ArrayList<PredictorNode> predictors = new ArrayList<PredictorNode>(25);
+    ArrayList<SplitterNode> splitters = new ArrayList<SplitterNode>(25);
 
     tree.getNodes(predictors, splitters);
     CandidateSplit split = null;
@@ -538,17 +507,17 @@ public class InstrumentedAlternatingTree extends ComplexLearner {
         // compare this splitter ID to the prediction ID
         // if they match, then add this splitter to the tree with this predictor
         if (splitterID.equals(predictionID)) {
-          PredictorNodeSB splitterBuilder = (PredictorNodeSB) m_splitterBuilders.get(i);
+          PredictorNodeSB predictorNodeSB = (PredictorNodeSB) m_PredictorNodeSBs.get(i);
           // find the splitter builder with the same type as this splitter
           // build a CandidateSplit and add it to this tree
-          for (int k = 0; k < splitterBuilder.SB.length; k++) {
+          for (int k = 0; k < predictorNodeSB.SB.length; k++) {
             // check that the Splitter and SplitterBuilder have the same type,
             // and that they have the same AttributeDescription
             // if
             // (splitter.splitter.getType().equals(splitterBuilder.SB[k].getType()))
             // {
-            if (splitterBuilder.SB[k].canBuild(splitter.splitter)) {
-              split = splitterBuilder.SB[k].build(splitter.splitter);
+            if (predictorNodeSB.SB[k].canBuild(splitter.splitter)) {
+              split = predictorNodeSB.SB[k].build(splitter.splitter);
               // find the predictors that have this splitter as their root
               Prediction[] predictions = new Prediction[splitter.getPredictorNodes().length];
               for (int n = 0; n < predictions.length; n++) {
@@ -588,7 +557,50 @@ public class InstrumentedAlternatingTree extends ComplexLearner {
   public String toString() {
     return (((PredictorNode) m_predictors.get(0)).toString());
   }
-
+  
+  /**
+   * Roughly compares if two InstrumentedAlternatingTrees are identical.
+   * It works by checking if, for each predictor node in this tree, there is
+   * a predictor node in an argument tree which has the same ID and prediction value.
+   * The reason behind writing this method is
+   * it is not easy to compare predictor node completely. Considering that
+   * PredictorNode can contain other PredictorNodes, to compare two predictor nodes,
+   * it needs to compare recursively.
+   * @param o another InstrumentedAlternatingTree (expected)
+   * @return true if two InstrumentedAlternatingTrees are roughly identical. 
+   */
+  public boolean roughlyEquals(Object o) {
+	  if (!(o instanceof InstrumentedAlternatingTree)) {
+		  return false;
+	  } else {
+		  InstrumentedAlternatingTree t2 = (InstrumentedAlternatingTree) o;
+		  if ((t2.m_predictors == null && m_predictors != null) || 
+		     (t2.m_PredictorNodeSBs != null && m_predictors == null)) {
+			  return false;
+		  } else {
+			  if (t2.m_predictors.size() != m_predictors.size()) {
+				  return false;
+			  }
+			  else {
+				  for (int i=0; i < m_predictors.size(); i++) {
+					  boolean found = false;
+					  PredictorNode p1 = m_predictors.get(i);
+					  for (int j=0; j < t2.m_predictors.size(); j++) {
+						  PredictorNode p2 = m_predictors.get(j);
+						  if (p1.id.equals(p2.id) && p1.prediction.equals(p2.prediction)) {
+							  found = true;
+							  break;
+						  }
+					  }
+					  if (!found) {
+						  return false;
+					  }
+				  }
+			  }
+		  }
+	  }
+	  return true;
+  }
   /**
    * returns the last base predictor that was added using addCandidate.
    */
@@ -601,6 +613,10 @@ public class InstrumentedAlternatingTree extends ComplexLearner {
     if (m_booster instanceof RobustBoost) {
       RobustBoost b = (RobustBoost) m_booster;
       return b.isFinished();
+    }
+    else if (m_booster instanceof BrownBoost) {
+    	BrownBoost b = (BrownBoost) m_booster;
+    	return b.isFinished();
     }
 
     double EPS = 1e-50;
@@ -656,7 +672,7 @@ public class InstrumentedAlternatingTree extends ComplexLearner {
     m_index = ind;
   }
 
-  public ArrayList getMasks() {
+  public ArrayList<boolean[]> getMasks() {
     return m_masks;
   }
 
@@ -680,7 +696,7 @@ public class InstrumentedAlternatingTree extends ComplexLearner {
       throw new ConfigurationException("Unknown value: " + aT + " for Atree_AddType");
     }
 
-    if (Monitor.logLevel > 3) Monitor.log("Add Type is " + aT + " " + m_treeType);
+    Monitor.log("Add Type is " + aT + " " + m_treeType,Monitor.LOG_LEVEL_THREE);
   }
 
   /** the last base predictor added to the tree */
@@ -696,42 +712,28 @@ public class InstrumentedAlternatingTree extends ComplexLearner {
     return (em);
   }
 
+  public ArrayList<PredictorNode> getM_predictors() {
+	  return m_predictors;
+  }
+
+  public ArrayList<SplitterNode> getM_splitters() {
+	  return m_splitters;
+  }
+
+  public AtreeType getM_treeType() {
+	  return m_treeType;
+  }
+
+  public void setM_treeType(AtreeType mTreeType) {
+	  m_treeType = mTreeType;
+  }
+
+  
 }
 
-/** A description of a candidate splitter */
-class AtreeCandidateSplit extends CandidateSplit {
-
-  boolean updateRoot;
-  private int pNode;
-
-  /** the predictor node in the atree which owns the builder */
-  public int getPredictorNode() {
-    return (pNode);
-  }
-
-  /** Constructor to convert from a {@link CandidateSplit} */
-  public AtreeCandidateSplit(int pn, CandidateSplit b) {
-    pNode = pn;
-    builder = b.getBuilder();
-    splitter = b.getSplitter();
-    partition = b.getPartition();
-    loss = b.getLoss();
-    updateRoot = false;
-  }
-
-  /** Constructor to specify that only the root prediction should be updated. */
-  public AtreeCandidateSplit(double loss) {
-    updateRoot = true;
-    this.loss = loss;
-    pNode = 0;
-    builder = null;
-    splitter = null;
-    partition = null;
-  }
-}
 
 /**
- * Contains a SplitterBuilder and the number of the PredictorNode to which it
+ * Contains SplitterBuilders and the number of the PredictorNode to which it
  * belongs.
  */
 class PredictorNodeSB {

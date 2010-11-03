@@ -10,7 +10,7 @@ import java.util.NoSuchElementException;
  * @author Rob Schapire (rewritten by Aaron Arvey)
  */
 
-class PatternNgram implements Enumeration {
+public class PatternNgram implements Enumeration<Object> {
 
   // current position in the list of words
   private int pos = 0;
