@@ -3,7 +3,8 @@
 import getopt, sys, os, os.path, re, math, glob
 
 def usage():
-    print("Usage: VisualizeScores.py <info-files-path>")
+    print("Usage: VisualizeScores.py [-f <file name>] <info-files-path>")
+    print(" -f option prints directly to a specified pdf file")
     print(" <info-file-path> is a directory containing files with names")
     print(" like trial0.test.boosting.info, trial2.train.boosting.info ...")
     print("")
@@ -12,9 +13,10 @@ def usage():
 def main():
 
     carry = 0
+    skip = ''    # GUI skip option
 
     try:
-        opts, args = getopt.getopt(sys.argv[1:],'hc',[])
+        opts, args = getopt.getopt(sys.argv[1:],'hf:c',[])
     except getopt.GetoptError:
         print 'Error: Illegal arguments'
         usage()
@@ -24,6 +26,9 @@ def main():
         if o in ('-h'):
             usage()
             sys.exit()
+        elif o in ('-f'):
+            skip += '-f '
+            skip += a
         elif o in ('-c'):
             carry = 1
         else:
@@ -44,7 +49,7 @@ def main():
     for f in trainfiles:
         infofiles.remove(f)
     
-    cmd = "java jboost.visualization.HistogramFrame " + str(carry) + " " + str(len(testfiles)) + " "
+    cmd = "java jboost.visualization.HistogramFrame " + str(carry) + " " + skip + " " + str(len(testfiles)) + " "
     for f in testfiles:
         cmd = cmd + f + " "
     cmd = cmd + str(len(trainfiles)) + " "

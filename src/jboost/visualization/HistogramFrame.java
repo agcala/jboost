@@ -44,6 +44,7 @@ import org.jfree.chart.plot.CombinedDomainXYPlot;
 import org.jfree.chart.plot.DatasetRenderingOrder;
 import org.jfree.chart.plot.IntervalMarker;
 import org.jfree.chart.plot.PlotOrientation;
+import org.jfree.chart.plot.RingPlot;
 import org.jfree.chart.plot.ValueMarker;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.xy.StandardXYItemRenderer;
@@ -134,6 +135,8 @@ public class HistogramFrame extends javax.swing.JFrame {
   public static void main(String[] args) {
 
     boolean carryOver = false;
+    boolean skipGUI = false;
+    String fname = null;
 
     if (args.length == 0) {
       System.out.println("Please call this from the python wrapper instead");
@@ -145,6 +148,15 @@ public class HistogramFrame extends javax.swing.JFrame {
       carryOver = true;
     }
     int offset = 1;
+    
+	// check file flag
+    if (args[offset].equals("-f")) {
+    	skipGUI = true;
+    	offset++;
+        fname = args[offset++];
+    }
+    
+    System.out.print(Integer.toString(offset));
 
     // get test files
     int numTestFiles = Integer.parseInt(args[offset++]);
@@ -174,23 +186,47 @@ public class HistogramFrame extends javax.swing.JFrame {
     // create the info parser
     infoParser = new InfoParser(testFiles, trainFiles, infoFiles, carryOver);
 
-    SwingUtilities.invokeLater(new Runnable() {
-
-      public void run() {
-        try {
-          HistogramFrame inst = new HistogramFrame();
-          inst.setLocationRelativeTo(null);
-          inst.setVisible(true);
-        }
-        catch (IOException e) {
-          e.printStackTrace();
-        }
-        catch (RuntimeException e) {
-          e.printStackTrace();
-          System.exit(-1);
-        }
-      }
-    });
+    if (skipGUI) {	// skip GUI and write images directly to pdf file
+    	final String pdf = fname;
+    	
+	    SwingUtilities.invokeLater(new Runnable() {
+	
+	        public void run() {
+	          try {
+	            HistogramFrame inst = new HistogramFrame();
+	            inst.setLocationRelativeTo(null);
+	            inst.toPDF(pdf);
+	            System.exit(0);
+	          }
+	          catch (IOException e) {
+	            e.printStackTrace();
+	          }
+	          catch (RuntimeException e) {
+	            e.printStackTrace();
+	            System.exit(-1);
+	          }
+	        }
+	    });
+    }
+    else {	// show GUI
+	    SwingUtilities.invokeLater(new Runnable() {
+	
+	      public void run() {
+	        try {
+	          HistogramFrame inst = new HistogramFrame();
+	          inst.setLocationRelativeTo(null);
+	          inst.setVisible(true);
+	        }
+	        catch (IOException e) {
+	          e.printStackTrace();
+	        }
+	        catch (RuntimeException e) {
+	          e.printStackTrace();
+	          System.exit(-1);
+	        }
+	      }
+	    });
+    }
   }
 
   public HistogramFrame() throws IOException {
@@ -392,16 +428,16 @@ public class HistogramFrame extends javax.swing.JFrame {
       double epsilon = infoParser.epsilon;
       double theta = infoParser.theta;
 
-      rho = RobustBoostHelper.calculateRho(sigma_f, epsilon, theta);
+      rho = RobustBoostHelper.calculateRho(confRated, sigma_f, epsilon, theta);
 
       if (showWeight) {
-        weightDataset.addSeries(RobustBoostHelper.getPosWeightPlot(sigma_f, epsilon, theta, rho, t, height, min, max, step / 2));
-        weightDataset.addSeries(RobustBoostHelper.getNegWeightPlot(sigma_f, epsilon, theta, rho, t, height, min, max, step / 2));
+        weightDataset.addSeries(RobustBoostHelper.getPosWeightPlot(confRated, sigma_f, epsilon, theta, rho, t, height, min, max, step / 2));
+        weightDataset.addSeries(RobustBoostHelper.getNegWeightPlot(confRated, sigma_f, epsilon, theta, rho, t, height, min, max, step / 2));
       }
 
       if (showPotential) {
-        potentialDataset.addSeries(RobustBoostHelper.getPosPotentialPlot(sigma_f, epsilon, theta, rho, t, height, min, max, step / 2));
-        potentialDataset.addSeries(RobustBoostHelper.getNegPotentialPlot(sigma_f, epsilon, theta, rho, t, height, min, max, step / 2));
+        potentialDataset.addSeries(RobustBoostHelper.getPosPotentialPlot(confRated, sigma_f, epsilon, theta, rho, t, height, min, max, step / 2));
+        potentialDataset.addSeries(RobustBoostHelper.getNegPotentialPlot(confRated, sigma_f, epsilon, theta, rho, t, height, min, max, step / 2));
       }
     }
     else if (infoParser.isAdaBoost) {
@@ -608,7 +644,7 @@ public class HistogramFrame extends javax.swing.JFrame {
 
         public void actionPerformed(ActionEvent evt) {
           // System.out.println("jMenuItem2.actionPerformed, event="+evt);
-          toPDF();
+          toPDF(null);
         }
       });
     }
@@ -679,9 +715,12 @@ public class HistogramFrame extends javax.swing.JFrame {
     return jMenuItem6;
   }
 
-  private void toPDF() {
+  private void toPDF(String fname) {
 
-    File pdf = selectPDFFile();
+	File pdf;
+	
+    if (fname != null) pdf = new File(fname); 
+    else pdf = selectPDFFile();
 
     if (pdf != null) {
 
@@ -861,6 +900,8 @@ public class HistogramFrame extends javax.swing.JFrame {
     rocDataset.addSeries(rocSeries);
 
     post("updating marker...");
+    lower_limit = rawData.getMin(iter);
+    upper_limit = rawData.getMax(iter);
     updateUpperMarker();
     updateLowerMarker();
 
