@@ -428,16 +428,16 @@ public class HistogramFrame extends javax.swing.JFrame {
       double epsilon = infoParser.epsilon;
       double theta = infoParser.theta;
 
-      rho = RobustBoostHelper.calculateRho(confRated, sigma_f, epsilon, theta);
+      rho = RobustBoostHelper.calculateRho(sigma_f, epsilon, theta);
 
       if (showWeight) {
-        weightDataset.addSeries(RobustBoostHelper.getPosWeightPlot(confRated, sigma_f, epsilon, theta, rho, t, height, min, max, step / 2));
-        weightDataset.addSeries(RobustBoostHelper.getNegWeightPlot(confRated, sigma_f, epsilon, theta, rho, t, height, min, max, step / 2));
+        weightDataset.addSeries(RobustBoostHelper.getPosWeightPlot(sigma_f, epsilon, theta, rho, t, height, min, max, step / 2));
+        weightDataset.addSeries(RobustBoostHelper.getNegWeightPlot(sigma_f, epsilon, theta, rho, t, height, min, max, step / 2));
       }
 
       if (showPotential) {
-        potentialDataset.addSeries(RobustBoostHelper.getPosPotentialPlot(confRated, sigma_f, epsilon, theta, rho, t, height, min, max, step / 2));
-        potentialDataset.addSeries(RobustBoostHelper.getNegPotentialPlot(confRated, sigma_f, epsilon, theta, rho, t, height, min, max, step / 2));
+        potentialDataset.addSeries(RobustBoostHelper.getPosPotentialPlot(sigma_f, epsilon, theta, rho, t, height, min, max, step / 2));
+        potentialDataset.addSeries(RobustBoostHelper.getNegPotentialPlot(sigma_f, epsilon, theta, rho, t, height, min, max, step / 2));
       }
     }
     else if (infoParser.isAdaBoost) {
