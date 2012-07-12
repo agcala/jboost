@@ -14,7 +14,7 @@ public class InfoParser {
   protected String[] iterNoList;
   protected boolean useCV, hasIndex, carryOver;
   protected int maxNumIndices, maxNumIter, numClasses;
-  protected int switchLabel = -1;
+  protected int switchLabel = 1;
 
   protected boolean isRobustBoost, isAdaBoost, isLogLossBoost, confRated;
   protected double epsilon, theta, sigma_f, rho;

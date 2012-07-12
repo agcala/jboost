@@ -35,7 +35,8 @@ public class DataSet {
   private double[] minRanges, maxRanges;
 
   private int total_pos, total_neg;
-  private int neg_label = -1, pos_label = +1;
+  private int neg_label = -1;
+  private int pos_label = +1;
 
   public DataSet(String[] iterList) {
     this.iterList = iterList;
@@ -207,11 +208,19 @@ public class DataSet {
   }
 
   public double getMin(int iter) {
-    return minScores[iter];
+      if (iter < 0) {
+	  return minScores[minScores.length - 1];
+      } else {
+	  return minScores[iter];
+      }
   }
 
   public double getMax(int iter) {
-    return maxScores[iter];
+      if (iter < 0) {
+	  return maxScores[maxScores.length - 1];
+      } else {
+	  return maxScores[iter];
+      }
   }
 
   public double getMinRange(int iter) {
@@ -314,26 +323,35 @@ public class DataSet {
     return index;
   }
 
-  public XYSeries generateRoC(int neg_label, int pos_label) {
+  public XYSeries generateRoC(int switchLabel) {
     XYSeries roc = new XYSeries("ROC");
 
     Object[] a = (Object[]) data.get(iteration).toArray();
 
     for (int i = a.length - 1; i >= 0; i--) {
       DataElement e = ((DataElement) a[i]);
-      roc.add(e.falsePositives / total_neg, e.truePositives / total_pos);
+      if (switchLabel == 1) {
+	  roc.add(e.falsePositives / total_neg, e.truePositives / total_pos);
+      } else {
+	  roc.add(e.truePositives / total_pos, e.falsePositives / total_neg);
+      }
     }
     return roc;
   }
 
-  public double[] getFPTP(double v) {
+    public double[] getFPTP(double v, int switchLabel) {
     ArrayList<DataElement> iterData = data.get(iteration);
     DataElement e = iterData.get(binarySearch(iterData, v));
-    double[] answer = { e.falsePositives / total_neg, e.truePositives / total_pos };
-    return answer;
+    if (switchLabel == 1) {
+      double[] answer = { e.falsePositives / total_neg, e.truePositives / total_pos };
+      return answer;
+    } else {
+      double[] answer = {  e.truePositives / total_pos, e.falsePositives / total_neg };
+      return answer;
+    }
   }
 
-  public double getScoreAtTPThreshold(double threshold) {
+    public double getScoreAtTPThreshold(double threshold, int switchLabel) {
     Object[] a = (Object[]) data.get(iteration).toArray();
 
     for (int i = a.length - 1; i >= 0; i--) {
@@ -375,12 +393,12 @@ public class DataSet {
   public static void main(String[] args) {
     DataSet test = new DataSet(1000, 3);
 
-    test.generateRoC(-1, 1);
-    double[] a = test.getFPTP(5.0);
+    test.generateRoC(1);
+    double[] a = test.getFPTP(5.0,1);
     System.out.printf("%d: %f; %f%n", test.getIteration(), a[0], a[1]);
     test.setIteration(2);
-    test.generateRoC(-1, 1);
-    a = test.getFPTP(5.0);
+    test.generateRoC(1);
+    a = test.getFPTP(5.0,1);
     System.out.printf("%d: %f; %f%n", test.getIteration(), a[0], a[1]);
 
     double[] hist = test.computeHistogram(1, 30);
