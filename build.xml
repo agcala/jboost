@@ -155,23 +155,10 @@
       <arg value="${jboost.home}/CHANGES" />
       <arg value="${jboost.home}/jboost" />
       <arg value="${jboost.home}/jboost.bat" />
+      <arg value="${jboost.home}/setClasspath.sh" />
+      <arg value="${jboost.home}/scripts" />
       <arg value="${jboost.home}/jboost-${jboost.version}" />
     </exec>
- 
-    <copy todir="${jboost.home}/jboost-${jboost.version}/scripts/" >
-      <fileset dir="${dir.scripts}">
-        <include name="*.py" />
-        <include name="*.pl" />
-        <include name="*.README" />
-	<include name="MultiClass/*" />
-      </fileset>
-    </copy>
-
-    <copy todir="${jboost.home}/jboost-${jboost.version}/scripts/MultiClass/" >
-      <fileset dir="${dir.scripts}/MultiClass">
-      </fileset>
-    </copy>
-
    
     <copy todir="${jboost.home}/jboost-${jboost.version}/demo/" >
       <fileset dir="${dir.demo}">
