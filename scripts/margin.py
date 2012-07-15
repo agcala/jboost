@@ -116,7 +116,7 @@ def write_gnuplot(m_list, iters, datafile):
 
 
 	epsoutlines = []
-	epsoutlines.append('set terminal post\n')
+	epsoutlines.append('set terminal postscript eps enhanced color solid\n')
 	epsoutlines.append('set output \'margin.eps\'\n')
 	epsoutlines.append('set title "' + datafile + ' Margins" font "Times,20"\n')
 	epsoutlines.append('set key left top\n')
@@ -279,6 +279,11 @@ def main():
 	    iters = map(int, [x.strip() for x in iteration.split(',')])
 	    for iter in iters:
 		    lines = [x for x in data[iter*(margin_elements+1)+1:(iter+1)*(margin_elements+1)]]
+
+		    if len(lines) == 0:
+			    print "Error: Missing data for some iterations. Make sure your .boosting.info is generated with -a -2 option."
+			    exit(1)
+
 		    margins = map(get_margin, lines)
 		    margin_list.append(margins)
     else:

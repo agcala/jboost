@@ -29,7 +29,7 @@ perl $SB/atree2dot2ps.pl  --info $NAME.info --tree $NAME.output.tree --threshold
 
 python $SB/error.py --info=$NAME.info --logaxis
 
-python $SB/margin.py --boost-info=$NAME.test.boosting.info --data=$NAME.test --spec=$NAME.spec --iteration=5,10,50,100
+python $SB/margin_test_train.py --boost-info-test=$NAME.test.boosting.info --boost-info-train=$NAME.train.boosting.info --iteration=5,10,50,100
 
 echo running 6 fold cross validation for $NAME
 
