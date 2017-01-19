@@ -1,5 +1,5 @@
-SITE="www.cs.ucsd.edu"
-DIR="users/aarvey/jboost"
+SITE="jboost.sourceforge.net"
+DIR="/"
 
 rm -rf css images 
 

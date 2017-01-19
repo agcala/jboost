@@ -1,0 +1,203 @@
+/*************
+General
+*************/
+
+body{
+	color: black;
+	background: #e8effa; 
+}
+
+a, a:visited, a:hover, a:link, a:active {
+	color: #000088;
+	background-color: transparent;
+}
+
+p{
+	padding-left: 10pt;
+	padding-right: 10pt;
+}
+
+li {
+	list-style-image: url(../images/blue_arrow2.png);
+	margin-top: 3pt;
+}
+
+/*************
+Sections
+*************/
+
+.main_table {
+	padding: 0px;
+	margin: 0px;
+	width: 100%;
+	border-spacing: 0px 0px;
+}
+
+.title{
+	border: 1px solid #bcc9d6;
+	margin:  0;
+	padding: 5pt;
+	background-color: #f8f8f8;
+	width: 50%
+}
+
+.section{
+	border: 1px solid #bcc9d6;
+	margin: 15pt;
+	padding: 0;
+	padding-right: 1pt;
+	background: #f8f8f8;
+	text-align: left;
+	width: 95%;
+}
+
+.section hr{
+	border: 1px solid #bcc9d6;
+}
+
+.section_heading{
+	background-color: #e7e7e7; 
+	margin-top:  0;
+	padding-top: 0;
+	font-style: italic;
+}
+
+
+.section_heading a{
+	color: black;
+}
+
+
+
+/************
+Header and Footer
+************/
+
+.headnav a { 
+	padding-right: 20px;
+	padding-left: 20px;
+}
+
+
+.headnav {
+	border: 1px solid #bcc9d6;
+	background-color: #9999cc;
+	padding: 0pt;
+	margin: 0pt;
+	height: 60pt;
+	position: relative;
+}
+
+.headnav img {
+	border: 0px;
+	margin: 0px;
+	width: 150px;
+	background-color: transparent;
+}
+
+
+.headmenu {
+	color: #000099;
+	font-size: 90%;
+	font-weight:bolder;
+	position: relative;
+	top: -30px;
+	bottom: 0px;
+	right: 5px;
+	text-align: center;
+}
+
+
+.footer img {
+	border:0;
+	width:88px;
+	height:31px
+}
+
+
+/************
+Sidebar 
+************/
+
+
+.leftbar {
+	float: left;
+	width: 186px;
+	padding: 5px;
+	font-size: smaller;
+}
+
+
+.rightbar {
+	float: right;
+	width: 186px;
+	padding: 5px;
+	font-size: smaller;
+}
+
+
+.sidebar {
+	border: 1px solid #bcc9d6;
+	width: 150pt;
+	margin: 0pt;
+	padding: 0pt;
+	margin-top: 15pt;
+	color: #0000bb;
+	background-color: transparent;
+}
+
+
+.sidebar_header {
+	color: #000099;
+	font-size: 120%;
+	background-color: #9999cc;
+	padding: 0pt;
+        margin: 0pt;
+}
+
+
+span.example {
+	border: 1px solid #bcc9d6;
+	border: 1px solid black;
+	margin: 50pt;
+	padding: 50pt;
+	margin-left: 10pt;
+	padding-left: 10pt;
+}
+
+div.example {
+	border: 1px solid #bcc9d6;
+	border: 1px solid black;
+	margin: 2pt;
+	padding: 0pt;
+	margin-left: 20pt;
+	padding-left: 10pt;
+	text-align:left;
+	align: left;
+	font-family: arial;
+	font-size: smaller;
+	width: 92%;
+}
+
+table.inset {
+	border-width: 1px 1px 1px 1px;
+	border-spacing: 2px;
+	border-style: solid solid solid solid;
+	border-color: black black black black;
+	border-collapse: collapse;
+}
+table.inset th {
+	border-width: 1px 1px 1px 1px;
+	padding: 1px 1px 1px 1px;
+	border-style: solid solid solid solid;
+	border-color: black black black black;
+	background-color: transparent;
+}
+table.inset td {
+	border-width: 1px 1px 1px 1px;
+	padding: 1px 1px 1px 1px;
+	border-style: solid solid solid solid;
+	border-color: black black black black;
+	background-color: transparent;
+}
+

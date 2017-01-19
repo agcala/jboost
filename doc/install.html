@@ -1,0 +1,275 @@
+
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<meta http-equiv="content-Type" CONTENT="text/html; charset=iso-8859-1">
+<link rel="StyleSheet" href="./css/jboost.css" type="text/css">
+<title>
+JBoost
+</title>
+</head>
+<body>
+
+<div class="headnav">
+ <a href="./index.html"><img src="./images/JBoostLogo1_IE.png" alt="JBoost Logo" /></a>
+ <div class="headmenu">
+  | <a class="headanchor" href="./index.html">Home</a> |
+  <a class="headanchor" href="./downloads.html">Downloads</a> |
+  <a class="headanchor" href="./doc.html">Documentation</a> |
+  <a class="headanchor" target="_blank" href="http://jboost.wiki.sourceforge.net/FAQ">FAQ</a> |
+  <a class="headanchor" href="./publications.html">Publications</a> |
+ </div>
+</div>
+
+
+<table class="main_table">
+
+<tr>
+
+<td align="left" valign="top">
+<table class="sidebar">
+
+<tr class="sidebar_header"><td>
+General
+</td></tr>
+
+<tr><td>
+<a href="./index.html">Home</a>
+</td></tr>
+<tr><td>
+<a href="./downloads.html">Downloads</a>
+</td></tr>
+<tr><td>
+<a href="./about.html">Mailing List</a>
+</td></tr>
+
+
+<tr class="sidebar_header"><td>
+Getting Started
+</td></tr>
+
+<tr><td>
+<a href="./install.html">Installing</a>
+</td></tr>
+<tr><td>
+<a href="./tutorial.html">Tutorial</a>
+</td></tr>
+<tr><td>
+<a href="./tips.html">Tips</a>
+</td></tr>
+<tr><td>
+<a href="./doc.html">Documentation</a>
+</td></tr>
+<tr><td>
+<a href="./examples.html">Examples</a>
+</td></tr>
+<!--
+<tr><td>
+<a href="./screenshots.html">Screenshots</a>
+</td></tr>
+-->
+<tr><td>
+<a href="http://jboost.wiki.sourceforge.net/FAQ" target="_blank">FAQ</a>
+</td></tr>
+
+
+<tr class="sidebar_header"><td>
+Developers
+</td></tr>
+
+<!--
+<tr><td>
+<a href="./contribute.html">Developers Mailing List</a>
+</td></tr>
+-->
+<tr><td>
+<a href="http://sourceforge.net/projects/jboost/">SourceForge Page</a>
+</td></tr>
+
+</table>
+
+</td>
+
+<td  align="left" valign="top">
+<!#if expr="${include_file}" -->
+  <div class="section">
+<h2 class="section_heading" >System Requirements</h2>
+
+<p>
+To run JBoost in its simplest form, you need to have <a
+href="http://java.sun.com/">Java 1.5</a> (or better) installed.  To run
+some of the auxiliary tools (which are very useful), you should also
+have <a href="http://www.python.org/">Python</a>, <a
+href="http://www.gnuplot.info/">gnuplot</a>, and <a
+href="http://www.graphviz.org/">Graphviz</a> installed.  Some of the
+tools may also use <a
+href="http://www.perl.com/download.csp">PERL</a>, however we are
+trying to phase these out.
+</p>
+
+</div>
+
+
+
+<div class="section">
+<h2 class="section_heading" >Installing</h2>
+
+<p>
+Installation is fairly simple.  <a href="./downloads.html">Download</a> the file
+appropriate for your system (self extracting zip for windows, tgz for
+Linux, zip for Mac) and unzip the files.
+</p>
+
+<p>
+Once you have unzipped the file, you should have a folder named
+<code>jboost-*.*</code>.  Currently, JBoost works best when all files
+are left in their original position in the folder and subfolders.
+</p>
+
+</div>
+
+
+
+<div align="left" class="section">
+<h2 class="section_heading" >Setting the CLASSPATH</h2>
+
+<p>
+Java relies on the system wide variable <code>CLASSPATH</code>.  The
+<code>CLASSPATH</code> currently needs to be setup by the user.  This 
+will hopefully change in near future.
+</p>
+
+
+<h4>Windows</h4>
+
+<p>
+Here is a how-to for setting the <a
+href="http://faculty.ed.umuc.edu/~arnoldyl/NetBeansTutorials/Setting-Classpath.html">
+classpath in windows</a>.  If <code>JBOOST_DIR</code> is the directory
+where jboost is installed, add the following paths
+<code>JBOOST_DIR\dist\jboost.jar</code>, 
+<code>JBOOST_DIR\lib\jfreechart-1.0.10.jar</code>, and
+<code>JBOOST_DIR\lib\jcommon-1.0.8.jar</code>.  These paths need to
+be separated by a semi-colon.  For instance, jboost-2.0 used by Aaron
+Arvey on his desktop can be put onto the classpath by prepending the
+following text to the <code>CLASSPATH</code> environment variable
+</p>
+
+<p>
+<code>
+C:\DOCUME~1\AARON~1\desktop\jboost-2.0\dist\jboost.jar;<br />
+C:\DOCUME~1\AARON~1\desktop\jboost-2.0\lib\jfreechart-1.0.10.jar; <br>
+C:\DOCUME~1\AARON~1\desktop\jboost-2.0\lib\jcommon-1.0.8.jar;
+</code>
+</p>
+
+
+
+<h4>Mac</h4>
+
+<p>
+Install via command line in same way as on Linux (see below).
+</p>
+
+<h4>Linux</h4>
+
+<p>
+There are three jar files that need to be in the classpath:
+<code>dist/jboost.jar</code>, <code>lib/jfreechart-1.0.10.jar</code>, and
+<code>lib/jcommon-1.0.8.jar</code>.  To
+determine which command line shell you use, you can do <code>echo
+$SHELL</code>.  To set the classpath in Linux FOR A SINGLE SESSION,
+you can do
+</p>
+
+<div class="example">
+# (bash shell) <br />
+export JBOOST_DIR="PUT DIRECTORY TO JBOOST HERE" <br />
+export CLASSPATH="$CLASSPATH:$JBOOST_DIR/dist/jboost.jar:$JBOOST_DIR/lib/jfreechart-1.0.10.jar:$JBOOST_DIR/lib/jcommon-1.0.8.jar" 
+</div> 
+
+<p>
+or 
+</p>
+
+<div class="example">
+# (tcsh shell) <br />
+setenv JBOOST_DIR "PUT DIRECTORY TO JBOOST HERE" <br />
+setenv CLASSPATH "$CLASSPATH:$JBOOST_DIR/dist/jboost.jar:$JBOOST_DIR/lib/jfreechart-1.0.10.jar:$JBOOST_DIR/lib/jcommon-1.0.8.jar"
+</div> 
+
+<p>
+To have the shell remember the classpath for FUTURE SESSIONS add the
+<code>export/setenv</code> lines (as shown above) into
+<code>~/.bashrc</code> (bash) or <code>~/.zshrc</code> (tcsh).
+</p>
+
+</div>
+
+
+
+<div class="section">
+<h2 class="section_heading" >Tested Systems</h2>
+
+<p>
+We are currently in the process of verifying JBoost's ability to run
+on a variety of systems.  In theory, it should be able to run on any
+system fulfilling the system requirements; but empirically we have
+shown that it works on the following systems:
+</p>
+
+<ul>
+
+<li>
+Linux with Java 1.6, Python 2.5.1, gnuplot 4.2.
+</li>
+
+</ul>
+
+</div>
+
+
+
+
+</td>
+
+</tr>
+
+</table>
+
+<hr />
+
+
+<p>
+ <a href="http://jigsaw.w3.org/css-validator/">
+  <img style="border:0;width:88px;height:31px"
+       src="http://jigsaw.w3.org/css-validator/images/vcss" 
+       alt="Valid CSS!">
+ </a>
+ <a href="http://validator.w3.org/check?uri=referer">
+  <img style="border:0;width:88px;height:31px"
+       src="http://www.w3.org/Icons/valid-html401"
+       alt="Valid HTML 4.01 Transitional" height="31" width="88"></a>
+
+<!-- <a href="http://sourceforge.net/">
+  <img style="border:0;width:88px;height:31px"
+       src="http://sflogo.sourceforge.net/sflogo.php?group_id=195659"
+       alt="Source Forge"</a> -->
+
+<a href="http://sourceforge.net"><img src="http://sflogo.sourceforge.net/sflogo.php?group_id=195659&amp;type=1" width="88" height="31" border="0" alt="SourceForge.net Logo" /></a>
+<!--
+ <a href="http://jboost.sourceforge.net/">
+  <img style="border:0;width:88px;height:31px"
+       src="http://sflogo.sourceforge.net/sflogo.php?group_id=195659"
+       alt="JBoost on Source Forge"</a>
+-->
+</p>
+
+<p>
+This page last modified Saturday, 06-Jun-2009 00:08:00 UTC
+</p>
+
+</body>
+</html>
+
+
